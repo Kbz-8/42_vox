@@ -30,7 +30,7 @@ namespace Scop
 		if(type == BufferType::Staging && data.Empty())
 			Warning("Vulkan: trying to create staging buffer without data (wtf?)");
 
-		CreateBuffer(size, m_usage, m_flags, false);
+		CreateBuffer(size, m_usage, m_flags);
 
 		if(!data.Empty())
 		{
@@ -41,7 +41,7 @@ namespace Scop
 			PushToGPU();
 	}
 
-	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, bool use_raw_size)
+	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 	{
 		auto device = RenderCore::Get().GetDevice();
 		m_buffer = kvfCreateBuffer(device, usage, size);
@@ -49,13 +49,8 @@ namespace Scop
 		VkMemoryRequirements mem_requirements;
 		RenderCore::Get().vkGetBufferMemoryRequirements(device, m_buffer, &mem_requirements);
 
-		if(use_raw_size)
-		{
-			m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
-			Message("test % - %", size, m_memory.size);
-		}
-		else
-			m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
+		m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
+		//m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
 		RenderCore::Get().vkBindBufferMemory(device, m_buffer, m_memory.memory, m_memory.offset);
 		Message("Vulkan: created buffer");
 		s_buffer_count++;
@@ -90,7 +85,7 @@ namespace Scop
 		GPUBuffer new_buffer;
 		new_buffer.m_usage = (this->m_usage & 0xFFFFFFFC) | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		new_buffer.m_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags, true);
+		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags);
 
 		if(new_buffer.CopyFrom(*this))
 			Swap(new_buffer);
@@ -167,7 +162,7 @@ namespace Scop
 
 	void UniformBuffer::SetData(CPUBuffer data, std::size_t frame_index)
 	{
-		if(data.GetSize() != m_buffers[frame_index].GetSize())
+		if(data.GetSize() > m_buffers[frame_index].GetSize())
 		{
 			Error("Vulkan: invalid data size to update to a uniform buffer, % != %", data.GetSize(), m_buffers[frame_index].GetSize());
 			return;

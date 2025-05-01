@@ -43,7 +43,7 @@ namespace Scop
 			MemoryBlock m_memory = NULL_MEMORY_BLOCK;
 
 		private:
-			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, bool use_raw_size);
+			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 
 		private:
 			inline static std::size_t s_buffer_count = 0;

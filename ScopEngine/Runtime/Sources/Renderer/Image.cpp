@@ -18,7 +18,7 @@ namespace Scop
 		{
 			case ImageType::Color: kvf_type = KVF_IMAGE_COLOR; break;
 			case ImageType::Depth: kvf_type = KVF_IMAGE_DEPTH; break;
-			case ImageType::Cube: kvf_type = KVF_IMAGE_CUBE; break;
+			case ImageType::Cube:  kvf_type = KVF_IMAGE_CUBE;  break;
 
 			default: break;
 		}

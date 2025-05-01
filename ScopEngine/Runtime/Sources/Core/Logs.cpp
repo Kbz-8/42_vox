@@ -43,11 +43,11 @@ namespace Scop
 
 		switch(type)
 		{
-			case LogType::Debug:      std::cout << Ansi::blue << "[Scop Debug] ";      break;
-			case LogType::Message:    std::cout << Ansi::blue << "[Scop Message] ";    break;
-			case LogType::Warning:    std::cout << Ansi::magenta << "[Scop Warning] "; break;
-			case LogType::Error:      std::cerr << Ansi::red << "[Scop Error] ";       break;
-			case LogType::FatalError: std::cerr << Ansi::red << "[Scop Fatal Error] "; break;
+			case LogType::Debug:      std::cout << Ansi::blue <<    "[Scop Debug]       "; break;
+			case LogType::Message:    std::cout << Ansi::blue <<    "[Scop Message]     "; break;
+			case LogType::Warning:    std::cout << Ansi::magenta << "[Scop Warning]     "; break;
+			case LogType::Error:      std::cerr << Ansi::red <<     "[Scop Error]       "; break;
+			case LogType::FatalError: std::cerr << Ansi::red <<     "[Scop Fatal Error] "; break;
 			default: break;
 		}
 
