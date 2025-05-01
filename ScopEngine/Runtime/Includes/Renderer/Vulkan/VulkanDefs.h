@@ -1,0 +1,127 @@
+// No header guard
+
+#ifdef VK_VERSION_1_0
+	#ifdef SCOP_VULKAN_GLOBAL_FUNCTION
+		SCOP_VULKAN_GLOBAL_FUNCTION(vkCreateInstance)
+		SCOP_VULKAN_GLOBAL_FUNCTION(vkEnumerateInstanceExtensionProperties)
+		SCOP_VULKAN_GLOBAL_FUNCTION(vkEnumerateInstanceLayerProperties)
+		SCOP_VULKAN_GLOBAL_FUNCTION(vkGetInstanceProcAddr)
+	#endif
+
+	#ifdef SCOP_VULKAN_INSTANCE_FUNCTION
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkCreateDevice)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkDestroyInstance)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkEnumerateDeviceExtensionProperties)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkEnumeratePhysicalDevices)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetDeviceProcAddr)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceFeatures)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceFormatProperties)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceImageFormatProperties)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceMemoryProperties)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceProperties)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties)
+		#ifdef DEBUG
+			#ifdef VK_EXT_debug_utils
+				SCOP_VULKAN_INSTANCE_FUNCTION(vkSetDebugUtilsObjectNameEXT)
+				//SCOP_VULKAN_INSTANCE_FUNCTION(vkSetDebugUtilsObjectTagEXT)
+			#endif
+		#endif
+	#endif
+
+	#ifdef SCOP_VULKAN_DEVICE_FUNCTION
+		SCOP_VULKAN_DEVICE_FUNCTION(vkAllocateCommandBuffers)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkAllocateDescriptorSets)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkAllocateMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkBeginCommandBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkBindBufferMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkBindImageMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdBeginRenderPass)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdBindDescriptorSets)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdBindIndexBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdBindPipeline)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdBindVertexBuffers)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdClearAttachments)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdClearColorImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdClearDepthStencilImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdCopyBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdCopyBufferToImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdCopyImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdCopyImageToBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdDraw)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdDrawIndexed)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdEndRenderPass)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdPipelineBarrier)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdPushConstants)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdSetScissor)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCmdSetViewport)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateCommandPool)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateDescriptorPool)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateDescriptorSetLayout)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateFence)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateFramebuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateGraphicsPipelines)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateImageView)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreatePipelineLayout)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateRenderPass)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateSampler)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateSemaphore)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateShaderModule)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyCommandPool)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyDescriptorPool)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyDescriptorSetLayout)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyDevice)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyFence)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyFramebuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyImage)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyImageView)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyPipeline)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyPipelineLayout)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyRenderPass)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroySampler)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroySemaphore)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroyShaderModule)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDeviceWaitIdle)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkEndCommandBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkFlushMappedMemoryRanges)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkFreeCommandBuffers)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkFreeMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetBufferMemoryRequirements)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetDeviceMemoryCommitment)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetDeviceQueue)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetFenceStatus)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetImageMemoryRequirements)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetImageSubresourceLayout)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkInvalidateMappedMemoryRanges)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkMapMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkQueueSubmit)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkQueueWaitIdle)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkResetCommandBuffer)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkResetDescriptorPool)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkResetEvent)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkResetFences)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkUnmapMemory)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkUpdateDescriptorSets)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkWaitForFences)
+	#endif
+#endif
+#ifdef VK_KHR_swapchain
+	#ifdef SCOP_VULKAN_DEVICE_FUNCTION
+		SCOP_VULKAN_DEVICE_FUNCTION(vkAcquireNextImageKHR)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkCreateSwapchainKHR)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkDestroySwapchainKHR)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkGetSwapchainImagesKHR)
+		SCOP_VULKAN_DEVICE_FUNCTION(vkQueuePresentKHR)
+	#endif
+#endif
+#ifdef VK_KHR_surface
+	#ifdef SCOP_VULKAN_INSTANCE_FUNCTION
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkDestroySurfaceKHR)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
+		SCOP_VULKAN_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR)
+	#endif
+#endif

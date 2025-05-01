@@ -1,0 +1,28 @@
+[nzsl_version("1.0")]
+module;
+
+struct VertOut
+{
+	[location(0)] uvw : vec3[f32]
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32],
+	[builtin(frag_depth)] depth: f32
+}
+
+external
+{
+	[set(1), binding(0)] skybox: sampler_cube[f32]
+}
+
+[entry(frag)]
+[depth_write(greater)]
+fn main(input: VertOut) -> FragOut
+{
+	let output: FragOut;
+	output.color = skybox.Sample(input.uvw);
+	output.depth = 1.0;
+	return output;
+}

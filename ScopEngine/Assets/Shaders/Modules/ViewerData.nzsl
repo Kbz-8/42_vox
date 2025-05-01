@@ -1,0 +1,15 @@
+[nzsl_version("1.0")]
+module ScopEngine.ViewerData;
+
+[export]
+[layout(std140)]
+struct ViewerData
+{
+	projection_matrix: mat4[f32],
+	inv_projection_matrix: mat4[f32],
+	view_matrix: mat4[f32],
+	inv_view_matrix: mat4[f32],
+	view_proj_matrix: mat4[f32],
+	inv_view_proj_matrix: mat4[f32],
+	camera_position: vec3[f32],
+}

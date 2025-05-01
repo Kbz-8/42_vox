@@ -1,0 +1,60 @@
+[nzsl_version("1.0")]
+module;
+
+struct VertOut
+{
+	[location(0)] color : vec4[f32],
+	[location(1)] uv : vec2[f32],
+	[location(2)] norm : vec4[f32],
+	[location(3)] norm_mat : mat4[f32],
+	[builtin(position)] pos: vec4[f32]
+}
+
+struct FragmentData
+{
+	dissolve_texture_factor: f32,
+	dissolve_black_white_colors_factor: f32,
+	dissolve_normals_colors_factor: f32,
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+external
+{
+	[set(1), binding(0)] u_albedo: sampler2D[f32],
+	[set(1), binding(1)] u_fragment_data: uniform[FragmentData],
+}
+
+fn Mixf32(a: f32, b: f32, t: f32) -> f32
+{
+    return a + (b - a) * t;
+}
+
+fn MixVec4f32(a: vec4[f32], b: vec4[f32], t: f32) -> vec4[f32]
+{
+	return vec4[f32](
+		Mixf32(a.x, b.x, t),
+		Mixf32(a.y, b.y, t),
+		Mixf32(a.z, b.z, t),
+		Mixf32(a.w, b.w, t)
+	);
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	let texture_color = u_albedo.Sample(input.uv);
+
+	let grey_scale_value: f32 = 0.3 * input.color.r + 0.59 * input.color.g + 0.11 * input.color.b;
+	let grey_scale = vec4[f32](grey_scale_value, grey_scale_value, grey_scale_value, 1.0);
+	input.color = MixVec4f32(input.color, grey_scale, u_fragment_data.dissolve_black_white_colors_factor);
+
+	input.color = MixVec4f32(input.color, abs(input.norm), u_fragment_data.dissolve_normals_colors_factor);
+
+	let output: FragOut;
+	output.color = MixVec4f32(input.color, texture_color, u_fragment_data.dissolve_texture_factor);
+	return output;
+}

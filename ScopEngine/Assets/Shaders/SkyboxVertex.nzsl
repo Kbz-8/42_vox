@@ -1,0 +1,37 @@
+[nzsl_version("1.0")]
+module;
+
+import ViewerData from ScopEngine.ViewerData;
+
+struct VertIn
+{
+	[location(0)] pos: vec4[f32],
+	[location(1)] color: vec4[f32],
+	[location(2)] normal: vec4[f32],
+	[location(3)] uv: vec2[f32]
+}
+
+struct VertOut
+{
+	[location(0)] uvw: vec3[f32],
+	[builtin(position)] pos: vec4[f32]
+}
+
+external
+{
+	[set(0), binding(0)] viewer_data: uniform[ViewerData]
+}
+
+[entry(vert)]
+fn main(input: VertIn) -> VertOut
+{
+	// Set translation part to zero
+	let rotation_matrix = viewer_data.view_matrix;
+	rotation_matrix[3].xyz = vec3[f32](0.0, 0.0, 0.0);
+
+	let output: VertOut;
+	output.uvw = input.pos.xyz;
+	output.uvw.xy *= -1.0;
+	output.pos = viewer_data.projection_matrix * rotation_matrix * input.pos;
+	return output;
+}
