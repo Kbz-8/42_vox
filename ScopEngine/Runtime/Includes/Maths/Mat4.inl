@@ -776,7 +776,7 @@ namespace Scop
 	{
 		angle /= T(2.0);
 
-		T yScale = angle.GetTan();
+		T yScale = std::abs(angle.GetTan());
 
 		return Mat4(
 			T(1.0) / (ratio * yScale), T(0.0),             T(0.0),                          T(0.0),

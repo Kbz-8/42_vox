@@ -26,7 +26,6 @@ namespace Scop
 		set_layouts.insert(set_layouts.end(), p_fragment_shader->GetPipelineLayout().set_layouts.begin(), p_fragment_shader->GetPipelineLayout().set_layouts.end());
 		m_pipeline_layout = kvfCreatePipelineLayout(RenderCore::Get().GetDevice(), set_layouts.data(), set_layouts.size(), push_constants.data(), push_constants.size());
 
-		TransitionAttachments();
 		CreateFramebuffers(m_attachments, descriptor.clear_color_attachments);
 
 		VkPhysicalDeviceFeatures features{};
@@ -66,6 +65,7 @@ namespace Scop
 	bool GraphicPipeline::BindPipeline(VkCommandBuffer command_buffer, std::size_t framebuffer_index, std::array<float, 4> clear) noexcept
 	{
 		TransitionAttachments(command_buffer);
+
 		VkFramebuffer fb = m_framebuffers[framebuffer_index];
 		VkExtent2D fb_extent = kvfGetFramebufferSize(fb);
 
@@ -128,6 +128,8 @@ namespace Scop
 
 	void GraphicPipeline::CreateFramebuffers(const std::vector<NonOwningPtr<Texture>>& render_targets, bool clear_attachments)
 	{
+		TransitionAttachments();
+
 		std::vector<VkAttachmentDescription> attachments;
 		std::vector<VkImageView> attachment_views;
 		if(p_renderer)
@@ -138,13 +140,13 @@ namespace Scop
 
 		for(NonOwningPtr<Texture> image : render_targets)
 		{
-			attachments.push_back(kvfBuildAttachmentDescription((kvfIsDepthFormat(image->GetFormat()) ? KVF_IMAGE_DEPTH : KVF_IMAGE_COLOR), image->GetFormat(), image->GetLayout(), image->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
+			attachments.push_back(kvfBuildAttachmentDescription(KVF_IMAGE_COLOR, image->GetFormat(), image->GetLayout(), image->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
 			attachment_views.push_back(image->GetImageView());
 		}
 
 		if(p_depth)
 		{
-			attachments.push_back(kvfBuildAttachmentDescription((kvfIsDepthFormat(p_depth->GetFormat()) ? KVF_IMAGE_DEPTH : KVF_IMAGE_COLOR), p_depth->GetFormat(), p_depth->GetLayout(), p_depth->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
+			attachments.push_back(kvfBuildAttachmentDescription(KVF_IMAGE_DEPTH, p_depth->GetFormat(), p_depth->GetLayout(), p_depth->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
 			attachment_views.push_back(p_depth->GetImageView());
 		}
 

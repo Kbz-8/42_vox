@@ -12,7 +12,6 @@ namespace Scop
 			case ShaderType::Vertex : m_stage = VK_SHADER_STAGE_VERTEX_BIT; break;
 			case ShaderType::Fragment : m_stage = VK_SHADER_STAGE_FRAGMENT_BIT; break;
 			case ShaderType::Compute : m_stage = VK_SHADER_STAGE_COMPUTE_BIT; break;
-
 			default : FatalError("wtf"); break;
 		}
 		m_module = kvfCreateShaderModule(RenderCore::Get().GetDevice(), m_bytecode.data(), m_bytecode.size());
@@ -56,6 +55,8 @@ namespace Scop
 
 	void Shader::Destroy()
 	{
+		if(m_module == VK_NULL_HANDLE)
+			return;
 		kvfDestroyShaderModule(RenderCore::Get().GetDevice(), m_module);
 		m_module = VK_NULL_HANDLE;
 		Message("Vulkan: shader module destroyed");
@@ -68,8 +69,7 @@ namespace Scop
 
 	Shader::~Shader()
 	{
-		if(m_module != VK_NULL_HANDLE)
-			Destroy();
+		Destroy();
 	}
 
 	std::shared_ptr<Shader> LoadShaderFromFile(const std::filesystem::path& filepath, ShaderType type, ShaderLayout layout)

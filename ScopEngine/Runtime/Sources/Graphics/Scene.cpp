@@ -108,6 +108,7 @@ namespace Scop
 
 	void Scene::Destroy()
 	{
+		RenderCore::Get().WaitDeviceIdle();
 		p_skybox.reset();
 		m_depth.Destroy();
 		m_actors.clear();

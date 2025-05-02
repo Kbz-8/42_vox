@@ -97,6 +97,7 @@ namespace Scop
 	{
 		if(m_buffer == VK_NULL_HANDLE)
 			return;
+		RenderCore::Get().WaitDeviceIdle();
 		RenderCore::Get().vkDestroyBuffer(RenderCore::Get().GetDevice(), m_buffer, nullptr);
 		RenderCore::Get().GetAllocator().Deallocate(m_memory);
 		m_buffer = VK_NULL_HANDLE;

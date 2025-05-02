@@ -2544,7 +2544,7 @@ VkAttachmentDescription kvfBuildAttachmentDescription(KvfImageType type, VkForma
 		__KvfSwapchain* kvf_swapchain = __kvfGetKvfSwapchainFromVkSwapchainKHR(swapchain);
 		KVF_ASSERT(kvf_swapchain != NULL);
 		KVF_ASSERT(kvf_swapchain->images_count != 0);
-		return kvfBuildAttachmentDescription(KVF_IMAGE_COLOR, kvf_swapchain->images_format, VK_IMAGE_LAYOUT_UNDEFINED,VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, clear, VK_SAMPLE_COUNT_1_BIT);
+		return kvfBuildAttachmentDescription(KVF_IMAGE_COLOR, kvf_swapchain->images_format, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, clear, VK_SAMPLE_COUNT_1_BIT);
 	}
 #endif
 
