@@ -23,11 +23,12 @@ namespace Scop
 		if(!m_main_render_texture.IsInit())
 		{
 			auto extent = kvfGetSwapchainImagesSize(renderer.GetSwapchain().Get());
-			m_main_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM);
+			m_main_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM, false, "scop_main_render_texture");
 		}
 
-		m_main_render_texture.Clear(renderer.GetActiveCommandBuffer(), Vec4f{ 0.0f, 0.0f, 0.0f, 1.0f });
 		scene.GetDepth().Clear(renderer.GetActiveCommandBuffer(), {});
+		m_main_render_texture.Clear(renderer.GetActiveCommandBuffer(), Vec4f{ 0.0f, 0.0f, 0.0f, 1.0f });
+		m_main_render_texture.TransitionLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, renderer.GetActiveCommandBuffer());
 
 		if(scene.GetDescription().render_3D_enabled)
 			m_forward.Pass(scene, renderer, m_main_render_texture);

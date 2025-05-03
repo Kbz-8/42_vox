@@ -15,7 +15,7 @@ namespace Scop
 		public:
 			GPUBuffer() = default;
 
-			void Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data);
+			void Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name = {});
 			void Destroy() noexcept;
 
 			bool CopyFrom(const GPUBuffer& buffer) noexcept;
@@ -43,10 +43,14 @@ namespace Scop
 			MemoryBlock m_memory = NULL_MEMORY_BLOCK;
 
 		private:
-			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name);
 
 		private:
 			inline static std::size_t s_buffer_count = 0;
+
+			#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+				std::string m_name;
+			#endif
 
 			VkBufferUsageFlags m_usage = 0;
 			VkMemoryPropertyFlags m_flags = 0;
@@ -55,7 +59,7 @@ namespace Scop
 	class VertexBuffer : public GPUBuffer
 	{
 		public:
-			inline void Init(std::uint32_t size, VkBufferUsageFlags additional_flags = 0) { GPUBuffer::Init(BufferType::LowDynamic, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | additional_flags, {}); }
+			inline void Init(std::uint32_t size, VkBufferUsageFlags additional_flags = 0, std::string_view name = {}) { GPUBuffer::Init(BufferType::LowDynamic, size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | additional_flags, {}, std::move(name)); }
 			void SetData(CPUBuffer data);
 			inline void Bind(VkCommandBuffer cmd) const noexcept { VkDeviceSize offset = 0; RenderCore::Get().vkCmdBindVertexBuffers(cmd, 0, 1, &m_buffer, &offset); }
 	};
@@ -63,7 +67,7 @@ namespace Scop
 	class IndexBuffer : public GPUBuffer
 	{
 		public:
-			inline void Init(std::uint32_t size, VkBufferUsageFlags additional_flags = 0) { GPUBuffer::Init(BufferType::LowDynamic, size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, {}); }
+			inline void Init(std::uint32_t size, VkBufferUsageFlags additional_flags = 0, std::string_view name = {}) { GPUBuffer::Init(BufferType::LowDynamic, size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, {}, std::move(name)); }
 			void SetData(CPUBuffer data);
 			inline void Bind(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindIndexBuffer(cmd, m_buffer, 0, VK_INDEX_TYPE_UINT32); }
 	};
@@ -71,7 +75,7 @@ namespace Scop
 	class UniformBuffer
 	{
 		public:
-			void Init(std::uint32_t size);
+			void Init(std::uint32_t size, std::string_view name = {});
 			void SetData(CPUBuffer data, std::size_t frame_index);
 			void Destroy() noexcept;
 

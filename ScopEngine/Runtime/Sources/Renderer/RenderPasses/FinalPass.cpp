@@ -44,6 +44,7 @@ namespace Scop
 			pipeline_descriptor.renderer = &renderer;
 			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
 			pipeline_descriptor.no_vertex_inputs = true;
+			pipeline_descriptor.name = "final_pass_pipeline";
 			m_pipeline.Init(pipeline_descriptor);
 		}
 

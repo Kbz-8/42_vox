@@ -28,6 +28,7 @@ namespace Scop
 			if(scene.GetForwardData().wireframe)
 				pipeline_descriptor.mode = VK_POLYGON_MODE_LINE;
 			pipeline_descriptor.clear_color_attachments = false;
+			pipeline_descriptor.name = "forward_pass_pipeline";
 			pipeline.Init(pipeline_descriptor);
 		}
 

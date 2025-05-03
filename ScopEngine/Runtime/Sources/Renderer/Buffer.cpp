@@ -4,7 +4,7 @@
 
 namespace Scop
 {
-	void GPUBuffer::Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data)
+	void GPUBuffer::Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name)
 	{
 		if(type == BufferType::Constant)
 		{
@@ -30,7 +30,7 @@ namespace Scop
 		if(type == BufferType::Staging && data.Empty())
 			Warning("Vulkan: trying to create staging buffer without data (wtf?)");
 
-		CreateBuffer(size, m_usage, m_flags);
+		CreateBuffer(size, m_usage, m_flags, std::move(name));
 
 		if(!data.Empty())
 		{
@@ -41,7 +41,7 @@ namespace Scop
 			PushToGPU();
 	}
 
-	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name)
 	{
 		auto device = RenderCore::Get().GetDevice();
 		m_buffer = kvfCreateBuffer(device, usage, size);
@@ -52,7 +52,33 @@ namespace Scop
 		m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
 		//m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
 		RenderCore::Get().vkBindBufferMemory(device, m_buffer, m_memory.memory, m_memory.offset);
-		Message("Vulkan: created buffer");
+
+		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+			std::string alloc_name{ name };
+			if(usage & VK_BUFFER_USAGE_INDEX_BUFFER_BIT)
+				alloc_name.append("_index_buffer");
+			else if(usage & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT)
+				alloc_name.append("_vertex_buffer");
+			else if(usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT)
+				alloc_name.append("_uniform_buffer");
+			else
+				alloc_name.append("_buffer");
+			if(m_flags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)
+				alloc_name.append("_gpu");
+			m_name = name;
+
+			VkDebugUtilsObjectNameInfoEXT name_info{};
+			name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+			name_info.objectType = VK_OBJECT_TYPE_BUFFER;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_buffer);
+			name_info.pObjectName = m_name.c_str();
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+
+			Message("Vulkan: % buffer created", m_name);
+		#else
+			Message("Vulkan: buffer created");
+		#endif
+
 		s_buffer_count++;
 	}
 
@@ -85,7 +111,7 @@ namespace Scop
 		GPUBuffer new_buffer;
 		new_buffer.m_usage = (this->m_usage & 0xFFFFFFFC) | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		new_buffer.m_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags);
+		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags, m_name);
 
 		if(new_buffer.CopyFrom(*this))
 			Swap(new_buffer);
@@ -150,11 +176,11 @@ namespace Scop
 		staging.Destroy();
 	}
 
-	void UniformBuffer::Init(std::uint32_t size)
+	void UniformBuffer::Init(std::uint32_t size, std::string_view name)
 	{
 		for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
-			m_buffers[i].Init(BufferType::HighDynamic, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, {});
+			m_buffers[i].Init(BufferType::HighDynamic, size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, {}, name);
 			m_maps[i] = m_buffers[i].GetMap();
 			if(m_maps[i] == nullptr)
 				FatalError("Vulkan: unable to map a uniform buffer");

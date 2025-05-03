@@ -4,7 +4,7 @@
 
 namespace Scop
 {
-	void Image::Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled)
+	void Image::Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled, std::string_view name)
 	{
 		m_type = type;
 		m_width = width;
@@ -49,7 +49,19 @@ namespace Scop
 
 		m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), true);
 		RenderCore::Get().vkBindImageMemory(RenderCore::Get().GetDevice(), m_image, m_memory.memory, 0);
-		Message("Vulkan: image created");
+
+		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+			VkDebugUtilsObjectNameInfoEXT name_info{};
+			name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+			name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_image);
+			name_info.pObjectName = name.data();
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+			Message("Vulkan: % image created", name);
+		#else
+			Message("Vulkan: image created");
+		#endif
+
 		s_image_count++;
 	}
 
@@ -68,17 +80,16 @@ namespace Scop
 		if(new_layout == m_layout)
 			return;
 		bool is_single_time_cmd_buffer = (cmd == VK_NULL_HANDLE);
-		if(is_single_time_cmd_buffer)
-			cmd = kvfCreateCommandBuffer(RenderCore::Get().GetDevice());
 		KvfImageType kvf_type = KVF_IMAGE_OTHER;
 		switch(m_type)
 		{
 			case ImageType::Color: kvf_type = KVF_IMAGE_COLOR; break;
 			case ImageType::Depth: kvf_type = KVF_IMAGE_DEPTH; break;
 			case ImageType::Cube: kvf_type = KVF_IMAGE_CUBE; break;
-
 			default: break;
 		}
+		if(is_single_time_cmd_buffer)
+			cmd = kvfCreateCommandBuffer(RenderCore::Get().GetDevice());
 		kvfTransitionImageLayout(RenderCore::Get().GetDevice(), m_image, kvf_type, cmd, m_format, m_layout, new_layout, is_single_time_cmd_buffer);
 		if(is_single_time_cmd_buffer)
 			kvfDestroyCommandBuffer(RenderCore::Get().GetDevice(), cmd);
@@ -128,6 +139,8 @@ namespace Scop
 
 	void Image::Destroy() noexcept
 	{
+		if(m_image == VK_NULL_HANDLE && m_image_view == VK_NULL_HANDLE && m_sampler == VK_NULL_HANDLE)
+			return;
 		RenderCore::Get().WaitDeviceIdle();
 		DestroySampler();
 		DestroyImageView();
@@ -140,10 +153,18 @@ namespace Scop
 		}
 		Message("Vulkan: image destroyed");
 		m_image = VK_NULL_HANDLE;
+		m_memory = NULL_MEMORY_BLOCK;
+		m_image = VK_NULL_HANDLE;
+		m_image_view = VK_NULL_HANDLE;
+		m_sampler = VK_NULL_HANDLE;
+		m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+		m_width = 0;
+		m_height = 0;
+		m_is_multisampled = false;
 		s_image_count--;
 	}
 
-	void CubeTexture::Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format)
+	void CubeTexture::Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format, std::string_view name)
 	{
 		if(!pixels)
 			FatalError("Vulkan: a cubemap cannot be created without pixels data");
@@ -198,7 +219,7 @@ namespace Scop
 			pointer_offset += current_size;
 		}
 
-		Image::Init(ImageType::Cube, face_width, face_height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		Image::Init(ImageType::Cube, face_width, face_height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false, std::move(name));
 		Image::CreateImageView(VK_IMAGE_VIEW_TYPE_CUBE, VK_IMAGE_ASPECT_COLOR_BIT, 6);
 		Image::CreateSampler();
 

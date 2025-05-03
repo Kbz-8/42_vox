@@ -39,7 +39,7 @@ namespace Scop
 			buffer.GetData()[i + 2] = data.x;
 			buffer.GetData()[i + 3] = 0xFF;
 		}
-		Message("BMP Loader : loaded %", path);
+		Message("BMP Loader: loaded %", path);
 		return buffer;
 	}
 }

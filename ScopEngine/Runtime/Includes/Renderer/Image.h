@@ -19,16 +19,24 @@ namespace Scop
 		public:
 			Image() = default;
 
-			inline void Init(VkImage image, VkFormat format, std::uint32_t width, std::uint32_t height, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED) noexcept
+			inline void Init(VkImage image, VkFormat format, std::uint32_t width, std::uint32_t height, VkImageLayout layout = VK_IMAGE_LAYOUT_UNDEFINED, std::string_view name = {}) noexcept
 			{
 				m_image = image;
 				m_format = format;
 				m_width = width;
 				m_height = height;
 				m_layout = layout;
+				#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+					VkDebugUtilsObjectNameInfoEXT name_info{};
+					name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+					name_info.objectType = VK_OBJECT_TYPE_IMAGE;
+					name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_image);
+					name_info.pObjectName = name.data();
+					RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+				#endif
 			}
 
-			void Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled = false);
+			void Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled = false, std::string_view name = {});
 			void CreateImageView(VkImageViewType type, VkImageAspectFlags aspectFlags, int layer_count = 1) noexcept;
 			void CreateSampler() noexcept;
 			void TransitionLayout(VkImageLayout new_layout, VkCommandBuffer cmd = VK_NULL_HANDLE);
@@ -75,11 +83,11 @@ namespace Scop
 	{
 		public:
 			DepthImage() = default;
-			inline void Init(std::uint32_t width, std::uint32_t height, bool is_multisampled = false)
+			inline void Init(std::uint32_t width, std::uint32_t height, bool is_multisampled = false, std::string_view name = {})
 			{
 				std::vector<VkFormat> candidates = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 				VkFormat format = kvfFindSupportFormatInCandidates(RenderCore::Get().GetDevice(), candidates.data(), candidates.size(), VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-				Image::Init(ImageType::Depth, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, is_multisampled); 
+				Image::Init(ImageType::Depth, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, is_multisampled, std::move(name)); 
 				Image::TransitionLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 				Image::CreateImageView(VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_DEPTH_BIT);
 			}
@@ -90,13 +98,13 @@ namespace Scop
 	{
 		public:
 			Texture() = default;
-			Texture(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, bool is_multisampled = false)
+			Texture(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, bool is_multisampled = false, std::string_view name = {})
 			{
-				Init(std::move(pixels), width, height, format, is_multisampled);
+				Init(std::move(pixels), width, height, format, is_multisampled, std::move(name));
 			}
-			inline void Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, bool is_multisampled = false)
+			inline void Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, bool is_multisampled = false, std::string_view name = {})
 			{
-				Image::Init(ImageType::Color, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, is_multisampled);
+				Image::Init(ImageType::Color, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, is_multisampled, std::move(name));
 				Image::CreateImageView(VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
 				Image::CreateSampler();
 				if(pixels)
@@ -126,11 +134,11 @@ namespace Scop
 	{
 		public:
 			CubeTexture() = default;
-			CubeTexture(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB)
+			CubeTexture(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, std::string_view name = {})
 			{
-				Init(std::move(pixels), width, height, format);
+				Init(std::move(pixels), width, height, format, std::move(name));
 			}
-			void Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB);
+			void Init(CPUBuffer pixels, std::uint32_t width, std::uint32_t height, VkFormat format = VK_FORMAT_R8G8B8A8_SRGB, std::string_view name = {});
 			~CubeTexture() override { Destroy(); }
 	};
 }

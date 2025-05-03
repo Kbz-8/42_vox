@@ -72,7 +72,7 @@ namespace Scop
 			if(event.What() == Event::ResizeEventCode)
 			{
 				m_depth.Destroy();
-				m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight());
+				m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight(), false, m_name + "_depth");
 			}
 
 			if(event.What() == Event::ResizeEventCode || event.What() == Event::SceneHasChangedEventCode)
@@ -81,9 +81,9 @@ namespace Scop
 		EventBus::RegisterListener({ functor, m_name + std::to_string(reinterpret_cast<std::uintptr_t>(this)) });
 
 		auto vertex_shader = RenderCore::Get().GetDefaultVertexShader();
-		m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight());
+		m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight(), false, m_name + "_depth");
 		m_forward.matrices_buffer = std::make_shared<UniformBuffer>();
-		m_forward.matrices_buffer->Init(sizeof(ViewerData));
+		m_forward.matrices_buffer->Init(sizeof(ViewerData), m_name + "_matrice_buffer");
 
 		m_forward.matrices_set = std::make_shared<DescriptorSet>(vertex_shader->GetShaderLayout().set_layouts[0].second, vertex_shader->GetPipelineLayout().set_layouts[0], ShaderType::Vertex);
 		for(std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)

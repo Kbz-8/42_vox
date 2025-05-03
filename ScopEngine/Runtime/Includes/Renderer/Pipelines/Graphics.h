@@ -20,6 +20,7 @@ namespace Scop
 		std::vector<NonOwningPtr<Texture>> color_attachments;
 		NonOwningPtr<DepthImage> depth = nullptr;
 		NonOwningPtr<class Renderer> renderer = nullptr;
+		std::string name = {};
 		VkCullModeFlagBits culling = VK_CULL_MODE_FRONT_BIT;
 		VkPolygonMode mode = VK_POLYGON_MODE_FILL;
 		bool no_vertex_inputs = false;
@@ -41,7 +42,7 @@ namespace Scop
 			[[nodiscard]] inline VkPipelineLayout GetPipelineLayout() const override { return m_pipeline_layout; }
 			[[nodiscard]] inline VkPipelineBindPoint GetPipelineBindPoint() const override { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
 
-			~GraphicPipeline() = default;
+			inline ~GraphicPipeline() noexcept { Destroy(); }
 
 		private:
 			void CreateFramebuffers(const std::vector<NonOwningPtr<Texture>>& render_targets, bool clear_attachments);
@@ -51,6 +52,7 @@ namespace Scop
 			bool BindPipeline(VkCommandBuffer) noexcept override { return false; };
 
 		private:
+			std::string m_name;
 			std::vector<NonOwningPtr<Texture>> m_attachments;
 			std::vector<VkFramebuffer> m_framebuffers;
 			std::vector<VkClearValue> m_clears;

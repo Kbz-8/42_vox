@@ -18,6 +18,9 @@ namespace Scop
 		p_renderer = descriptor.renderer;
 		p_depth = descriptor.depth;
 
+		m_name = descriptor.name;
+		std::cout << m_name << std::endl;
+
 		std::vector<VkPushConstantRange> push_constants;
 		std::vector<VkDescriptorSetLayout> set_layouts;
 		push_constants.insert(push_constants.end(), p_vertex_shader->GetPipelineLayout().push_constants.begin(), p_vertex_shader->GetPipelineLayout().push_constants.end());
@@ -58,8 +61,37 @@ namespace Scop
 		}
 
 		m_pipeline = kvfCreateGraphicsPipeline(RenderCore::Get().GetDevice(), VK_NULL_HANDLE, m_pipeline_layout, builder, m_renderpass);
-		Message("Vulkan: graphics pipeline created");
 		kvfDestroyGPipelineBuilder(builder);
+
+		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+			VkDebugUtilsObjectNameInfoEXT name_info{};
+			name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+			name_info.objectType = VK_OBJECT_TYPE_PIPELINE;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_pipeline);
+			name_info.pObjectName = descriptor.name.data();
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+
+			name_info.objectType = VK_OBJECT_TYPE_RENDER_PASS;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_renderpass);
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+
+			name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(p_vertex_shader->GetShaderModule());
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(p_fragment_shader->GetShaderModule());
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+
+			name_info.objectType = VK_OBJECT_TYPE_FRAMEBUFFER;
+			for(VkFramebuffer fb : m_framebuffers)
+			{
+				name_info.objectHandle = reinterpret_cast<std::uint64_t>(fb);
+				RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+			}
+			Message("Vulkan: % graphics pipeline created", descriptor.name);
+		#else
+			Message("Vulkan: graphics pipeline created");
+		#endif
 	}
 
 	bool GraphicPipeline::BindPipeline(VkCommandBuffer command_buffer, std::size_t framebuffer_index, std::array<float, 4> clear) noexcept
@@ -106,23 +138,33 @@ namespace Scop
 
 	void GraphicPipeline::Destroy() noexcept
 	{
+		if(m_pipeline == VK_NULL_HANDLE)
+			return;
+		std::cout << m_name << std::endl;
 		RenderCore::Get().WaitDeviceIdle();
-		p_vertex_shader.reset();
-		p_fragment_shader.reset();
+
 		for(auto& fb : m_framebuffers)
 		{
 			kvfDestroyFramebuffer(RenderCore::Get().GetDevice(), fb);
 			Message("Vulkan: framebuffer destroyed");
 		}
-		m_framebuffers.clear();
+
 		kvfDestroyPipelineLayout(RenderCore::Get().GetDevice(), m_pipeline_layout);
-		m_pipeline_layout = VK_NULL_HANDLE;
 		Message("Vulkan: graphics pipeline layout destroyed");
 		kvfDestroyRenderPass(RenderCore::Get().GetDevice(), m_renderpass);
-		m_renderpass = VK_NULL_HANDLE;
 		Message("Vulkan: renderpass destroyed");
 		kvfDestroyPipeline(RenderCore::Get().GetDevice(), m_pipeline);
+
+		p_vertex_shader.reset();
+		p_fragment_shader.reset();
+		m_attachments.clear();
+		m_framebuffers.clear();
+		m_clears.clear();
+		m_renderpass = VK_NULL_HANDLE;
 		m_pipeline = VK_NULL_HANDLE;
+		m_pipeline_layout = VK_NULL_HANDLE;
+		p_renderer = nullptr;
+		p_depth = nullptr;
 		Message("Vulkan: graphics pipeline destroyed");
 	}
 
@@ -177,10 +219,6 @@ namespace Scop
 			p_depth->TransitionLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, cmd);
 
 		for(NonOwningPtr<Texture> image : m_attachments)
-		{
-			if(!image->IsInit())
-				continue;
 			image->TransitionLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, cmd);
-		}
 	}
 }

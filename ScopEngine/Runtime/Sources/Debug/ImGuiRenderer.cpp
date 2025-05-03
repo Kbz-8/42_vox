@@ -96,12 +96,12 @@ namespace Scop
 	void ImGuiRenderer::Destroy()
 	{
 		RenderCore::Get().WaitDeviceIdle();
-		ImGui_ImplVulkan_Shutdown();
-		ImGui_ImplSDL2_Shutdown();
-		ImGui::DestroyContext();
 		for(VkFramebuffer fb : m_framebuffers)
 			kvfDestroyFramebuffer(RenderCore::Get().GetDevice(), fb);
 		m_framebuffers.clear();
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplSDL2_Shutdown();
+		ImGui::DestroyContext();
 		kvfDestroyRenderPass(RenderCore::Get().GetDevice(), m_renderpass);
 		RenderCore::Get().vkDestroyDescriptorPool(RenderCore::Get().GetDevice(), m_pool, nullptr);
 	}
@@ -116,7 +116,6 @@ namespace Scop
 
 	void ImGuiRenderer::DisplayRenderStatistics()
 	{
-
 		static std::array<std::string, 5> gpu_types_string = {
 			"Other",
 			"Integrated",

@@ -11,7 +11,7 @@ namespace Scop
 	{
 		if(!std::filesystem::exists(path))
 		{
-			Error("OBJ loader : OBJ file does not exists; %", path);
+			Error("OBJ loader: OBJ file does not exists; %", path);
 			return std::nullopt;
 		}
 		char line[1024];
@@ -88,7 +88,7 @@ namespace Scop
 			ObjData::FaceList& fl = face;
 			fl.second.push_back(fl.first.size());
 		}
-		Message("OBJ Loader : loaded %", path);
+		Message("OBJ Loader: loaded %", path);
 		return data;
 	}
 

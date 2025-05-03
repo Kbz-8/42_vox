@@ -240,7 +240,7 @@ namespace Scop
 		VkFormat format = kvfGetSwapchainImagesFormat(m_swapchain);
 		for(std::size_t i = 0; i < m_images_count; i++)
 		{
-			m_swapchain_images[i].Init(tmp[i], format, extent.width, extent.height, VK_IMAGE_LAYOUT_UNDEFINED);
+			m_swapchain_images[i].Init(tmp[i], format, extent.width, extent.height, VK_IMAGE_LAYOUT_UNDEFINED, std::string{ "swapchain_" + std::to_string(i) });
 			m_swapchain_images[i].TransitionLayout(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, cmd);
 			m_swapchain_images[i].CreateImageView(VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT);
 		}

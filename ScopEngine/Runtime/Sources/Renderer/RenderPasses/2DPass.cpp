@@ -71,6 +71,7 @@ namespace Scop
 			pipeline_descriptor.color_attachments = { &render_target };
 			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
 			pipeline_descriptor.clear_color_attachments = false;
+			pipeline_descriptor.name = "2D_pass_pipeline";
 			m_pipeline.Init(pipeline_descriptor);
 		}
 
