@@ -5,7 +5,7 @@
 
 namespace Scop
 {
-	Shader::Shader(const std::vector<std::uint32_t>& bytecode, ShaderType type, ShaderLayout layout) : m_bytecode(bytecode), m_layout(std::move(layout))
+	Shader::Shader(const std::vector<std::uint32_t>& bytecode, ShaderType type, ShaderLayout layout, std::string name) : m_name(std::move(name)), m_bytecode(bytecode), m_layout(std::move(layout))
 	{
 		switch(type)
 		{
@@ -15,7 +15,16 @@ namespace Scop
 			default : FatalError("wtf"); break;
 		}
 		m_module = kvfCreateShaderModule(RenderCore::Get().GetDevice(), m_bytecode.data(), m_bytecode.size());
-		Message("Vulkan: shader module created");
+		Message("Vulkan: shader module % created", m_name);
+
+		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
+			VkDebugUtilsObjectNameInfoEXT name_info{};
+			name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+			name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_module);
+			name_info.pObjectName = m_name.c_str();
+			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
+		#endif
 
 		GeneratePipelineLayout(m_layout);
 	}
@@ -59,7 +68,7 @@ namespace Scop
 			return;
 		kvfDestroyShaderModule(RenderCore::Get().GetDevice(), m_module);
 		m_module = VK_NULL_HANDLE;
-		Message("Vulkan: shader module destroyed");
+		Message("Vulkan: shader module % destroyed", m_name);
 		for(auto& layout : m_set_layouts)
 		{
 			kvfDestroyDescriptorSetLayout(RenderCore::Get().GetDevice(), layout);
@@ -84,7 +93,7 @@ namespace Scop
 			data.push_back(part);
 		stream.close();
 
-		std::shared_ptr<Shader> shader = std::make_shared<Shader>(data, type, layout);
+		std::shared_ptr<Shader> shader = std::make_shared<Shader>(data, type, layout, filepath.stem().string());
 		Message("Vulkan: shader loaded %", filepath);
 		return shader;
 	}

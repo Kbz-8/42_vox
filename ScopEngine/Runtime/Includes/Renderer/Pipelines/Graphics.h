@@ -52,7 +52,6 @@ namespace Scop
 			bool BindPipeline(VkCommandBuffer) noexcept override { return false; };
 
 		private:
-			std::string m_name;
 			std::vector<NonOwningPtr<Texture>> m_attachments;
 			std::vector<VkFramebuffer> m_framebuffers;
 			std::vector<VkClearValue> m_clears;

@@ -37,40 +37,6 @@ int main(int ac, char** av)
 	Scop::Vec2ui32 skybox_size;
 	main_scene.AddSkybox(std::make_shared<Scop::CubeTexture>(Scop::LoadBMPFile(GetResourcesPath() / "skybox.bmp", skybox_size), skybox_size.x, skybox_size.y));
 
-	Scop::Actor& object = main_scene.CreateActor(Scop::LoadModelFromObjFile(GetResourcesPath() / "knuckles.obj"));
-	object.SetScale(Scop::Vec3f{ 5.0f, 5.0f, 5.0f });
-
-	Scop::Actor& object2 = main_scene.CreateActor(Scop::CreateSphere());
-	object2.SetScale(Scop::Vec3f{ 5.0f, 5.0f, 5.0f });
-	object2.SetPosition(Scop::Vec3f{ 10.0f, 10.0f, 10.0f });
-
-	Scop::Vec2ui32 map_size;
-
-	Scop::MaterialTextures material_params;
-	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "knuckles.bmp", map_size), map_size.x, map_size.y);
-
-	std::shared_ptr<Scop::Material> material = std::make_shared<Scop::Material>(material_params);
-	object.GetModelRef().SetMaterial(material, 0);
-
-	auto object_update = [](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Actor> actor, Scop::Inputs& input, float delta)
-	{
-		static Scop::MaterialData material_data{};
-
-		WireframeHandler(scene, input);
-		MovementHandler(actor, input, delta);
-		ColorsTransitionHandler(actor, input, delta, material_data);
-		TextureTransitionHandler(actor, input, delta, material_data);
-
-		for(std::shared_ptr<Scop::Material> material : actor->GetModelRef().GetAllMaterials())
-		{
-			if(material)
-				material->SetMaterialData(material_data);
-		}
-	};
-
-	using actor_hook = std::function<void(Scop::NonOwningPtr<Scop::Actor>)>;
-	object.AttachScript(std::make_shared<Scop::NativeActorScript>(actor_hook{}, object_update, actor_hook{}));
-
 	engine.RegisterMainScene(splash_scene.get());
 	engine.Run();
 	return 0;

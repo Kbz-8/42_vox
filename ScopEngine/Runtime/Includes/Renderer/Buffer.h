@@ -48,9 +48,7 @@ namespace Scop
 		private:
 			inline static std::size_t s_buffer_count = 0;
 
-			#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
-				std::string m_name;
-			#endif
+			std::string m_name;
 
 			VkBufferUsageFlags m_usage = 0;
 			VkMemoryPropertyFlags m_flags = 0;

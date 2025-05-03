@@ -18,9 +18,6 @@ namespace Scop
 		p_renderer = descriptor.renderer;
 		p_depth = descriptor.depth;
 
-		m_name = descriptor.name;
-		std::cout << m_name << std::endl;
-
 		std::vector<VkPushConstantRange> push_constants;
 		std::vector<VkDescriptorSetLayout> set_layouts;
 		push_constants.insert(push_constants.end(), p_vertex_shader->GetPipelineLayout().push_constants.begin(), p_vertex_shader->GetPipelineLayout().push_constants.end());
@@ -140,7 +137,6 @@ namespace Scop
 	{
 		if(m_pipeline == VK_NULL_HANDLE)
 			return;
-		std::cout << m_name << std::endl;
 		RenderCore::Get().WaitDeviceIdle();
 
 		for(auto& fb : m_framebuffers)
