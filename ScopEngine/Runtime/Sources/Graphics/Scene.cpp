@@ -35,6 +35,20 @@ namespace Scop
 		return *actor;
 	}
 
+	Narrator& Scene::CreateNarrator() noexcept
+	{
+		std::shared_ptr<Narrator> narrator = std::make_shared<Narrator>();
+		m_narrators.push_back(narrator);
+		return *narrator;
+	}
+
+	Narrator& Scene::CreateNarrator(std::string_view name)
+	{
+		std::shared_ptr<Narrator> narrator = std::make_shared<Narrator>();
+		m_narrators.push_back(narrator);
+		return *narrator;
+	}
+
 	Sprite& Scene::CreateSprite(std::shared_ptr<Texture> texture) noexcept
 	{
 		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture);
@@ -92,6 +106,7 @@ namespace Scop
 			m_forward.matrices_set->Update(i);
 		}
 		m_forward.albedo_set = std::make_shared<DescriptorSet>(m_descriptor.fragment_shader->GetShaderLayout().set_layouts[0].second, m_descriptor.fragment_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+
 		for(auto& child : m_scene_children)
 			child.Init(renderer);
 	}
@@ -100,6 +115,8 @@ namespace Scop
 	{
 		for(auto actor : m_actors)
 			actor->Update(this, input, timestep);
+		for(auto narrator : m_narrators)
+			narrator->Update(this, input, timestep);
 		for(auto sprite : m_sprites)
 			sprite->Update(this, input, timestep);
 		if(m_descriptor.camera)
@@ -112,6 +129,7 @@ namespace Scop
 		p_skybox.reset();
 		m_depth.Destroy();
 		m_actors.clear();
+		m_narrators.clear();
 		m_sprites.clear();
 		m_pipeline.Destroy();
 		m_descriptor.fragment_shader.reset();

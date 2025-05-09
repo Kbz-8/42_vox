@@ -8,6 +8,7 @@
 #include <Utils/NonOwningPtr.h>
 
 #include <Graphics/Actor.h>
+#include <Graphics/Narrator.h>
 #include <Graphics/Sprite.h>
 #include <Renderer/Buffer.h>
 #include <Renderer/Descriptor.h>
@@ -47,6 +48,9 @@ namespace Scop
 			Actor& CreateActor(Model model) noexcept;
 			Actor& CreateActor(std::string_view name, Model model);
 
+			Narrator& CreateNarrator() noexcept;
+			Narrator& CreateNarrator(std::string_view name);
+
 			Sprite& CreateSprite(std::shared_ptr<Texture> texture) noexcept;
 			Sprite& CreateSprite(std::string_view name, std::shared_ptr<Texture> texture);
 
@@ -82,6 +86,7 @@ namespace Scop
 			std::shared_ptr<CubeTexture> p_skybox;
 			std::vector<std::shared_ptr<Actor>> m_actors;
 			std::vector<std::shared_ptr<Sprite>> m_sprites;
+			std::vector<std::shared_ptr<Narrator>> m_narrators;
 			std::vector<Scene> m_scene_children;
 			std::string m_name;
 			NonOwningPtr<Scene> p_parent;

@@ -1,27 +1,9 @@
 #include <ScopCore.h>
 #include <ScopGraphics.h>
 
-#include <ScriptSubRoutines.h>
 #include <Splash.h>
-
-#include <climits>
-#include <memory>
-#include <unistd.h>
-#include <filesystem>
-#include <string>
-#include <cmath>
-
-std::filesystem::path GetExecutablePath()
-{
-	char result[PATH_MAX];
-	ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
-	return std::string(result, (count > 0) ? count : 0);
-}
-
-std::filesystem::path GetResourcesPath()
-{
-	return GetExecutablePath().parent_path().parent_path() / "Resources";
-}
+#include <Utils.h>
+#include <World.h>
 
 int main(int ac, char** av)
 {
@@ -36,6 +18,16 @@ int main(int ac, char** av)
 
 	Scop::Vec2ui32 skybox_size;
 	main_scene.AddSkybox(std::make_shared<Scop::CubeTexture>(Scop::LoadBMPFile(GetResourcesPath() / "skybox.bmp", skybox_size), skybox_size.x, skybox_size.y));
+
+	World world(main_scene);
+
+	Scop::Actor& object = main_scene.CreateActor(Scop::CreateCube());
+
+	Scop::Vec2ui32 map_size;
+	Scop::MaterialTextures material_params;
+	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "prototype.bmp", map_size), map_size.x, map_size.y);
+	std::shared_ptr<Scop::Material> material = std::make_shared<Scop::Material>(material_params);
+	object.GetModelRef().SetMaterial(material, 0);
 
 	engine.RegisterMainScene(splash_scene.get());
 	engine.Run();

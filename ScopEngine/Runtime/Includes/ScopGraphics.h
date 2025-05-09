@@ -11,5 +11,6 @@
 #include <Graphics/Cameras/FirstPerson3D.h>
 #include <Graphics/Loaders/OBJ.h>
 #include <Graphics/Loaders/BMP.h>
+#include <Graphics/Narrator.h>
 
 #endif

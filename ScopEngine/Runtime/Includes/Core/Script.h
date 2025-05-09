@@ -28,6 +28,18 @@ namespace Scop
 
 			virtual ~SpriteScript() = default;
 	};
+
+	class NarratorScript
+	{
+		public:
+			NarratorScript() = default;
+
+			virtual void OnInit() = 0;
+			virtual void OnUpdate(NonOwningPtr<class Scene> scene, class Inputs& input, float delta) = 0;
+			virtual void OnQuit() = 0;
+
+			virtual ~NarratorScript() = default;
+	};
 }
 
 #endif

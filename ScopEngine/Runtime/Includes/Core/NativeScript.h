@@ -44,6 +44,25 @@ namespace Scop
 			std::function<void(NonOwningPtr<class Scene>, NonOwningPtr<class Sprite>, class Inputs&, float)> f_on_update;
 			std::function<void(NonOwningPtr<class Sprite>)> f_on_quit;
 	};
+
+	class NativeNarratorScript : public NarratorScript
+	{
+		public:
+			NativeNarratorScript(std::function<void()> on_init, std::function<void(NonOwningPtr<class Scene>, class Inputs&, float)> on_update, std::function<void()> on_quit)
+			: f_on_init(std::move(on_init)), f_on_update(std::move(on_update)), f_on_quit(std::move(on_quit))
+			{}
+
+			inline void OnInit() override { if(f_on_init) f_on_init(); }
+			inline void OnUpdate(NonOwningPtr<class Scene> scene, class Inputs& input, float delta) override { if(f_on_update) f_on_update(scene, input, delta); }
+			inline void OnQuit() override { if(f_on_quit) f_on_quit(); }
+
+			~NativeNarratorScript() = default;
+
+		private:
+			std::function<void()> f_on_init;
+			std::function<void(NonOwningPtr<class Scene>, class Inputs&, float)> f_on_update;
+			std::function<void()> f_on_quit;
+	};
 }
 
 #endif

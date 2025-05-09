@@ -1,5 +1,5 @@
-#ifndef __SCOP_RENDERER_ACTOR__
-#define __SCOP_RENDERER_ACTOR__
+#ifndef __SCOP_GRAPHICS_ACTOR__
+#define __SCOP_GRAPHICS_ACTOR__
 
 #include <Maths/Vec3.h>
 #include <Maths/Vec4.h>
@@ -11,12 +11,13 @@ namespace Scop
 {
 	class Actor
 	{
+		friend Scene;
+
 		public:
 			Actor();
 			Actor(Model model);
 
 			inline void AttachScript(std::shared_ptr<ActorScript> script) { p_script = script; }
-			void Update(NonOwningPtr<class Scene> scene, class Inputs& input, float timestep);
 
 			inline void SetColor(Vec4f color) noexcept { m_color = color; }
 			inline void SetPosition(Vec3f position) noexcept { m_position = position; }
@@ -31,6 +32,9 @@ namespace Scop
 			[[nodiscard]] inline Model& GetModelRef() noexcept { return m_model; }
 
 			~Actor();
+
+		public:
+			void Update(NonOwningPtr<class Scene> scene, class Inputs& input, float timestep);
 
 		private:
 			Model m_model;

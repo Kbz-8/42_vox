@@ -1,5 +1,5 @@
-#ifndef __SCOPE_MATHS_ENUMS__
-#define __SCOPE_MATHS_ENUMS__
+#ifndef __SCOP_MATHS_ENUMS__
+#define __SCOP_MATHS_ENUMS__
 
 #include <cstddef>
 
