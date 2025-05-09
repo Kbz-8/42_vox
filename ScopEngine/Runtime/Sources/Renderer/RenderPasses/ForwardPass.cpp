@@ -29,6 +29,15 @@ namespace Scop
 				pipeline_descriptor.mode = VK_POLYGON_MODE_LINE;
 			pipeline_descriptor.clear_color_attachments = false;
 			pipeline_descriptor.name = "forward_pass_pipeline";
+			switch(scene.GetDescription().culling)
+			{
+				case CullMode::None: pipeline_descriptor.culling = VK_CULL_MODE_NONE; break;
+				case CullMode::Back: pipeline_descriptor.culling = VK_CULL_MODE_BACK_BIT; break;
+				case CullMode::Front: pipeline_descriptor.culling = VK_CULL_MODE_FRONT_BIT; break;
+				case CullMode::FrontAndBack: pipeline_descriptor.culling = VK_CULL_MODE_FRONT_AND_BACK; break;
+
+				default: break;
+			}
 			pipeline.Init(pipeline_descriptor);
 		}
 

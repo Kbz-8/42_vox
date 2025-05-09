@@ -14,20 +14,13 @@ int main(int ac, char** av)
 	Scop::SceneDescriptor main_scene_desc;
 	main_scene_desc.fragment_shader = Scop::RenderCore::Get().GetDefaultFragmentShader();
 	main_scene_desc.camera = std::make_shared<Scop::FirstPerson3D>(Scop::Vec3f{ -10.0f, 0.0f, 0.0f }, 80.f);
+	main_scene_desc.culling = Scop::CullMode::None;
 	Scop::Scene& main_scene = splash_scene->AddChildScene("main", std::move(main_scene_desc));
 
 	Scop::Vec2ui32 skybox_size;
 	main_scene.AddSkybox(std::make_shared<Scop::CubeTexture>(Scop::LoadBMPFile(GetResourcesPath() / "skybox.bmp", skybox_size), skybox_size.x, skybox_size.y));
 
 	World world(main_scene);
-
-	Scop::Actor& object = main_scene.CreateActor(Scop::CreateCube());
-
-	Scop::Vec2ui32 map_size;
-	Scop::MaterialTextures material_params;
-	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "prototype.bmp", map_size), map_size.x, map_size.y);
-	std::shared_ptr<Scop::Material> material = std::make_shared<Scop::Material>(material_params);
-	object.GetModelRef().SetMaterial(material, 0);
 
 	engine.RegisterMainScene(splash_scene.get());
 	engine.Run();

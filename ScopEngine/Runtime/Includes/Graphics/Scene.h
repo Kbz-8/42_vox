@@ -7,6 +7,7 @@
 
 #include <Utils/NonOwningPtr.h>
 
+#include <Graphics/Enums.h>
 #include <Graphics/Actor.h>
 #include <Graphics/Narrator.h>
 #include <Graphics/Sprite.h>
@@ -23,6 +24,7 @@ namespace Scop
 	{
 		std::shared_ptr<Shader> fragment_shader;
 		std::shared_ptr<BaseCamera> camera;
+		CullMode culling;
 		bool render_3D_enabled = true;
 		bool render_2D_enabled = true;
 		bool render_skybox_enabled = true;

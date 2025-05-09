@@ -17,6 +17,7 @@ namespace Scop
 
 		Vertex() = default;
 		Vertex(Vec4f p, Vec4f c, Vec4f n, Vec2f u) : position(std::move(p)), color(std::move(c)), normal(std::move(n)), uv(std::move(u)) {}
+		Vertex(Vec4f p, Vec4f n, Vec2f u) : position(std::move(p)), normal(std::move(n)), uv(std::move(u)) {}
 
 		[[nodiscard]] inline static VkVertexInputBindingDescription GetBindingDescription();
 		[[nodiscard]] inline static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions();
