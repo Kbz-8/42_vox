@@ -6,6 +6,7 @@
 #include <Maths/Quaternions.h>
 #include <Core/Script.h>
 #include <Graphics/Model.h>
+#include <Core/UUID.h>
 
 namespace Scop
 {
@@ -30,6 +31,7 @@ namespace Scop
 			[[nodiscard]] inline const Quatf& GetOrientation() const noexcept { return m_orientation; }
 			[[nodiscard]] inline const Model& GetModel() const noexcept { return m_model; }
 			[[nodiscard]] inline Model& GetModelRef() noexcept { return m_model; }
+			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
 
 			~Actor();
 
@@ -43,6 +45,7 @@ namespace Scop
 			Vec3f m_position = Vec3f{ 0.0f, 0.0f, 0.0f };
 			Vec3f m_scale = Vec3f{ 1.0f, 1.0f, 1.0f };
 			std::shared_ptr<ActorScript> p_script;
+			std::uint64_t m_uuid;
 	};
 }
 

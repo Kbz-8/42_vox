@@ -13,9 +13,9 @@ namespace Scop
 	void Mesh::Draw(VkCommandBuffer cmd, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t submesh_index) const noexcept
 	{
 		Verify(submesh_index < m_sub_meshes.size(), "invalid submesh index");
-		m_sub_meshes[submesh_index].vbo.Bind(cmd);
-		m_sub_meshes[submesh_index].ibo.Bind(cmd);
-		RenderCore::Get().vkCmdDrawIndexed(cmd, static_cast<std::uint32_t>(m_sub_meshes[submesh_index].ibo.GetSize() / sizeof(std::uint32_t)), 1, 0, 0, 0);
+		m_sub_meshes[submesh_index].buffer.BindVertex(cmd);
+		m_sub_meshes[submesh_index].buffer.BindIndex(cmd);
+		RenderCore::Get().vkCmdDrawIndexed(cmd, m_sub_meshes[submesh_index].index_size, 1, 0, 0, 0);
 		polygondrawn += m_sub_meshes[submesh_index].triangle_count;
 		drawcalls++;
 	}
@@ -23,9 +23,6 @@ namespace Scop
 	Mesh::~Mesh()
 	{
 		for(auto& mesh : m_sub_meshes)
-		{
-			mesh.vbo.Destroy();
-			mesh.ibo.Destroy();
-		}
+			mesh.buffer.Destroy();
 	}
 }

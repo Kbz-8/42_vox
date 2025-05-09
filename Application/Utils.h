@@ -2,8 +2,9 @@
 #define UTILS_H
 
 #include <unistd.h>
-#include <climits>
 #include <filesystem>
+
+#include <ScopMaths.h>
 
 inline std::filesystem::path GetExecutablePath()
 {
@@ -15,6 +16,30 @@ inline std::filesystem::path GetExecutablePath()
 inline std::filesystem::path GetResourcesPath()
 {
 	return GetExecutablePath().parent_path().parent_path() / "Resources";
+}
+
+inline void HashCombine([[maybe_unused]] std::size_t& seed) noexcept {}
+
+template <typename T, typename... Rest>
+inline void HashCombine(std::size_t& seed, const T& v, Rest... rest)
+{
+	std::hash<T> hasher;
+	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	HashCombine(seed, rest...);
+}
+
+namespace std
+{
+	template <>
+	struct hash<Scop::Vec2i>
+	{
+		std::size_t operator()(const Scop::Vec2i& v) const noexcept
+		{
+			std::size_t hash = 0;
+			HashCombine(hash, v.x, v.y);
+			return hash;
+		}
+	};
 }
 
 #endif

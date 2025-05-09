@@ -5,12 +5,14 @@ namespace Scop
 {
 	Actor::Actor()
 	{
+		m_uuid = UUID();
 		if(p_script)
 			p_script->OnInit(this);
 	}
 
 	Actor::Actor(Model model) : m_model(std::move(model))
 	{
+		m_uuid = UUID();
 		if(p_script)
 			p_script->OnInit(this);
 	}

@@ -16,23 +16,18 @@ namespace Scop
 		public:
 			struct SubMesh
 			{
-				VertexBuffer vbo;
-				IndexBuffer ibo;
+				MeshBuffer buffer;
+				std::size_t index_size;
 				std::size_t triangle_count = 0;
 
 				inline SubMesh(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices)
 				{
-					CPUBuffer vb(vertices.size() * sizeof(Vertex));
-					std::memcpy(vb.GetData(), vertices.data(), vb.GetSize());
-					vbo.Init(vb.GetSize());
-					vbo.SetData(std::move(vb));
-
-					CPUBuffer ib(indices.size() * sizeof(std::uint32_t));
-					std::memcpy(ib.GetData(), indices.data(), ib.GetSize());
-					ibo.Init(ib.GetSize());
-					ibo.SetData(std::move(ib));
-
+					CPUBuffer data(vertices.size() * sizeof(Vertex) + indices.size() * sizeof(std::uint32_t));
+					std::memcpy(data.GetData(), vertices.data(), vertices.size() * sizeof(Vertex));
+					std::memcpy(data.GetData() + vertices.size() * sizeof(Vertex), indices.data(), indices.size() * sizeof(std::uint32_t));
+					buffer.Init(vertices.size() * sizeof(Vertex), indices.size() * sizeof(std::uint32_t), 0, std::move(data));
 					triangle_count = vertices.size() / 3;
+					index_size = indices.size();
 				}
 			};
 

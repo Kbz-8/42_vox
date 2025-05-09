@@ -31,6 +31,7 @@ namespace Scop
 			[[nodiscard]] inline const Vec2f& GetScale() const noexcept { return m_scale; }
 			[[nodiscard]] inline std::shared_ptr<Mesh> GetMesh() const { return p_mesh; }
 			[[nodiscard]] inline std::shared_ptr<Texture> GetTexture() const { return p_texture; }
+			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
 
 			~Sprite();
 
@@ -57,6 +58,7 @@ namespace Scop
 			Vec4f m_color = Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 			Vec2ui m_position = Vec2ui{ 0, 0 };
 			Vec2f m_scale = Vec2f{ 1.0f, 1.0f };
+			std::uint64_t m_uuid;
 	};
 }
 

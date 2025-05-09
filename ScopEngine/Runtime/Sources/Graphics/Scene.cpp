@@ -1,3 +1,4 @@
+#include "Graphics/Narrator.h"
 #include <Graphics/Scene.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderCore.h>
@@ -61,6 +62,39 @@ namespace Scop
 		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture);
 		m_sprites.push_back(sprite);
 		return *sprite;
+	}
+
+	void Scene::RemoveActor(Actor& actor) noexcept
+	{
+		auto it = std::find_if(m_actors.begin(), m_actors.end(), [actor](const std::shared_ptr<Actor> lhs) { return actor.GetUUID() == lhs->GetUUID(); });
+		if(it == m_actors.end())
+		{
+			Error("Actor not found");
+			return;
+		}
+		m_actors.erase(it);
+	}
+
+	void Scene::RemoveNarrator(Narrator& narrator) noexcept
+	{
+		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [narrator](const std::shared_ptr<Narrator> lhs) { return narrator.GetUUID() == lhs->GetUUID(); });
+		if(it == m_narrators.end())
+		{
+			Error("Narrator not found");
+			return;
+		}
+		m_narrators.erase(it);
+	}
+
+	void Scene::RemoveSprite(Sprite& sprite) noexcept
+	{
+		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [sprite](const std::shared_ptr<Sprite> lhs) { return sprite.GetUUID() == lhs->GetUUID(); });
+		if(it == m_sprites.end())
+		{
+			Error("Sprite not found");
+			return;
+		}
+		m_sprites.erase(it);
 	}
 
 	void Scene::SwitchToChild(std::string_view name) const noexcept

@@ -5,7 +5,7 @@
 #include <ScopGraphics.h>
 #include <ScopMaths.h>
 
-constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 16, 256, 16 };
+constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 32, 256, 32 };
 
 class Chunk
 {
@@ -13,7 +13,9 @@ class Chunk
 		Chunk(class World& world, Scop::Vec2i offset);
 
 		void GenerateChunk();
-		std::uint32_t GetBlock(Scop::Vec3i position) const noexcept;
+		void GenerateMesh();
+		[[nodiscard]] std::uint32_t GetBlock(Scop::Vec3i position) const noexcept;
+		[[nodiscard]] inline Scop::NonOwningPtr<Scop::Actor> GetActor() const noexcept { return p_actor; }
 
 		~Chunk() = default;
 

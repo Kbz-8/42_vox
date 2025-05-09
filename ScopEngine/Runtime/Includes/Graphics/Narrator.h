@@ -6,6 +6,7 @@
 #include <Maths/Quaternions.h>
 #include <Core/Script.h>
 #include <Graphics/Model.h>
+#include <Core/UUID.h>
 
 namespace Scop
 {
@@ -14,8 +15,9 @@ namespace Scop
 		friend Scene;
 
 		public:
-			Narrator() = default;
+			Narrator() : m_uuid(UUID()) {}
 			inline void AttachScript(std::shared_ptr<NarratorScript> script) { p_script = script; }
+			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
 			inline ~Narrator()
 			{
 				if(p_script)
@@ -31,6 +33,7 @@ namespace Scop
 
 		private:
 			std::shared_ptr<NarratorScript> p_script;
+			std::uint64_t m_uuid;
 	};
 }
 

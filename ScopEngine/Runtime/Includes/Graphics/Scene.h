@@ -56,6 +56,10 @@ namespace Scop
 			Sprite& CreateSprite(std::shared_ptr<Texture> texture) noexcept;
 			Sprite& CreateSprite(std::string_view name, std::shared_ptr<Texture> texture);
 
+			void RemoveActor(Actor& actor) noexcept;
+			void RemoveNarrator(Narrator& narrator) noexcept;
+			void RemoveSprite(Sprite& sprite) noexcept;
+
 			[[nodiscard]] inline Scene& AddChildScene(std::string_view name, SceneDescriptor desc) { return m_scene_children.emplace_back(name, std::move(desc), this); }
 			inline void AddSkybox(std::shared_ptr<CubeTexture> cubemap) { p_skybox = cubemap; }
 			void SwitchToChild(std::string_view name) const noexcept;

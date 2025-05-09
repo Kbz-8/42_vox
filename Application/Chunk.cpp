@@ -17,17 +17,20 @@ Chunk::Chunk(World& world, Scop::Vec2i offset) : m_offset(offset), m_position(st
 
 void Chunk::GenerateChunk()
 {
+	if(p_actor)
+		return;
+	#pragma omp parallel for
 	for(auto& z: m_data)
 	{
+		#pragma omp parallel for
 		for(auto& y: z)
 			std::fill(y.begin(), y.end(), 0);
 	}
 
-	std::vector<Scop::Vertex> mesh_data;
-	std::vector<std::uint32_t> indices;
-
+	#pragma omp parallel for
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
+		#pragma omp parallel for
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
 		{
 			// Implement noise here
@@ -36,6 +39,18 @@ void Chunk::GenerateChunk()
 				m_data[x][z][y] = 1;
 		}
 	}
+}
+
+void Chunk::GenerateMesh()
+{
+	if(p_actor)
+		return;
+
+	std::vector<Scop::Vertex> mesh_data;
+	std::vector<std::uint32_t> indices;
+
+	mesh_data.reserve(CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z);
+	indices.reserve(CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z);
 
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
@@ -129,8 +144,8 @@ void Chunk::GenerateChunk()
 
 std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 {
-	//if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
-	//	return 1;
+	if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
+		return 1;
 	if(position.x < m_data.size() && position.z < m_data[position.x].size() && position.y < m_data[position.x][position.z].size())
 		return m_data[position.x][position.z][position.y];
 	return 0;

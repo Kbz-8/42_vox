@@ -10,5 +10,6 @@
 #include <Core/Logs.h>
 #include <Core/NativeScript.h>
 #include <Core/Script.h>
+#include <Core/UUID.h>
 
 #endif

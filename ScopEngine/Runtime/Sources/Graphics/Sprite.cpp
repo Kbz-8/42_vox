@@ -3,12 +3,14 @@
 #include <Renderer/Image.h>
 #include <Graphics/MeshFactory.h>
 #include <Core/Logs.h>
+#include <Core/UUID.h>
 
 namespace Scop
 {
 	Sprite::Sprite(std::shared_ptr<Texture> texture)
 	{
 		Verify((bool)texture, "Sprite: invalid texture");
+		m_uuid = UUID();
 		p_mesh = CreateQuad(0, 0, texture->GetWidth(), texture->GetHeight());
 		p_texture = texture;
 		if(p_script)

@@ -70,6 +70,24 @@ namespace Scop
 			inline void Bind(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindIndexBuffer(cmd, m_buffer, 0, VK_INDEX_TYPE_UINT32); }
 	};
 
+	class MeshBuffer : public GPUBuffer
+	{
+		public:
+			inline void Init(std::uint32_t vertex_size, std::uint32_t index_size, VkBufferUsageFlags additional_flags = 0, CPUBuffer data = {}, std::string_view name = {})
+			{
+				m_vertex_offset = 0;
+				m_index_offset = vertex_size;
+				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name));
+			}
+			// Full flemme de faire les fonctions SetData
+			inline void BindVertex(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindVertexBuffers(cmd, 0, 1, &m_buffer, &m_vertex_offset); }
+			inline void BindIndex(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindIndexBuffer(cmd, m_buffer, m_index_offset, VK_INDEX_TYPE_UINT32); }
+
+		private:
+			VkDeviceSize m_vertex_offset;
+			VkDeviceSize m_index_offset;
+	};
+
 	class UniformBuffer
 	{
 		public:
