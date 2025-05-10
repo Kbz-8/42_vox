@@ -82,7 +82,7 @@ namespace Scop
 		s_buffer_count++;
 	}
 
-	bool GPUBuffer::CopyFrom(const GPUBuffer& buffer) noexcept
+	bool GPUBuffer::CopyFrom(const GPUBuffer& buffer, std::size_t src_offset, std::size_t dst_offset) noexcept
 	{
 		if(!(m_usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT))
 		{
@@ -97,7 +97,7 @@ namespace Scop
 
 		VkCommandBuffer cmd = kvfCreateCommandBuffer(RenderCore::Get().GetDevice());
 		kvfBeginCommandBuffer(cmd, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-		kvfCopyBufferToBuffer(cmd, m_buffer, buffer.Get(), buffer.GetSize());
+		kvfCopyBufferToBuffer(cmd, m_buffer, buffer.Get(), buffer.GetSize(), src_offset, dst_offset);
 		kvfEndCommandBuffer(cmd);
 		VkFence fence = kvfCreateFence(RenderCore::Get().GetDevice());
 		kvfSubmitSingleTimeCommandBuffer(RenderCore::Get().GetDevice(), cmd, KVF_GRAPHICS_QUEUE, fence);
@@ -144,7 +144,7 @@ namespace Scop
 	{
 		if(data.GetSize() > m_memory.size)
 		{
-			Error("Vulkan: trying to store to much data in a vertex buffer (% bytes in % bytes)", data.GetSize(), m_memory.size);
+			Error("Vulkan: trying to store too much data in a vertex buffer (% bytes in % bytes)", data.GetSize(), m_memory.size);
 			return;
 		}
 		if(data.Empty())
@@ -162,7 +162,7 @@ namespace Scop
 	{
 		if(data.GetSize() > m_memory.size)
 		{
-			Error("Vulkan: trying to store to much data in an index buffer (% bytes in % bytes)", data.GetSize(), m_memory.size);
+			Error("Vulkan: trying to store too much data in an index buffer (% bytes in % bytes)", data.GetSize(), m_memory.size);
 			return;
 		}
 		if(data.Empty())
@@ -173,6 +173,42 @@ namespace Scop
 		GPUBuffer staging;
 		staging.Init(BufferType::Staging, data.GetSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
 		CopyFrom(staging);
+		staging.Destroy();
+	}
+
+	void MeshBuffer::SetVertexData(CPUBuffer data)
+	{
+		if(data.GetSize() > m_index_offset)
+		{
+			Error("Vulkan: trying to store too much data in a vertex buffer (% bytes in % bytes)", data.GetSize(), m_index_offset);
+			return;
+		}
+		if(data.Empty())
+		{
+			Warning("Vulkan: cannot set empty data in a vertex buffer");
+			return;
+		}
+		GPUBuffer staging;
+		staging.Init(BufferType::Staging, data.GetSize(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, data);
+		CopyFrom(staging, 0, 0);
+		staging.Destroy();
+	}
+
+	void MeshBuffer::SetIndexData(CPUBuffer data)
+	{
+		if(data.GetSize() > m_memory.size - m_index_offset)
+		{
+			Error("Vulkan: trying to store too much data in an index buffer (% bytes in % bytes)", data.GetSize(), m_memory.size - m_index_offset);
+			return;
+		}
+		if(data.Empty())
+		{
+			Warning("Vulkan: cannot set empty data in an index buffer");
+			return;
+		}
+		GPUBuffer staging;
+		staging.Init(BufferType::Staging, data.GetSize(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, data);
+		CopyFrom(staging, 0, m_index_offset);
 		staging.Destroy();
 	}
 

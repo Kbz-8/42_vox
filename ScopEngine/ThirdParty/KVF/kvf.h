@@ -159,7 +159,7 @@ VkSampler kvfCreateSampler(VkDevice device, VkFilter filters, VkSamplerAddressMo
 void kvfDestroySampler(VkDevice device, VkSampler sampler);
 
 VkBuffer kvfCreateBuffer(VkDevice device, VkBufferUsageFlags usage, VkDeviceSize size);
-void kvfCopyBufferToBuffer(VkCommandBuffer cmd, VkBuffer dst, VkBuffer src, size_t size);
+void kvfCopyBufferToBuffer(VkCommandBuffer cmd, VkBuffer dst, VkBuffer src, size_t size, size_t src_offset, size_t dst_offset);
 void kvfCopyBufferToImage(VkCommandBuffer cmd, VkImage dst, VkBuffer src, size_t buffer_offset, VkImageAspectFlagBits aspect, VkExtent3D extent);
 void kvfDestroyBuffer(VkDevice device, VkBuffer buffer);
 
@@ -2278,7 +2278,7 @@ VkBuffer kvfCreateBuffer(VkDevice device, VkBufferUsageFlags usage, VkDeviceSize
 	return buffer;
 }
 
-void kvfCopyBufferToBuffer(VkCommandBuffer cmd, VkBuffer dst, VkBuffer src, size_t size)
+void kvfCopyBufferToBuffer(VkCommandBuffer cmd, VkBuffer dst, VkBuffer src, size_t size, size_t src_offset, size_t dst_offset)
 {
 	KVF_ASSERT(cmd != VK_NULL_HANDLE);
 	KVF_ASSERT(dst != VK_NULL_HANDLE);
@@ -2289,6 +2289,8 @@ void kvfCopyBufferToBuffer(VkCommandBuffer cmd, VkBuffer dst, VkBuffer src, size
 	#endif
 	VkBufferCopy copy_region = {};
 	copy_region.size = size;
+	copy_region.srcOffset = src_offset;
+	copy_region.dstOffset = dst_offset;
 	KVF_GET_DEVICE_FUNCTION(vkCmdCopyBuffer)(cmd, src, dst, 1, &copy_region);
 }
 

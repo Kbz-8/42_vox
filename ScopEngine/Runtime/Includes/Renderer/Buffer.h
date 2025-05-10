@@ -18,7 +18,7 @@ namespace Scop
 			void Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name = {});
 			void Destroy() noexcept;
 
-			bool CopyFrom(const GPUBuffer& buffer) noexcept;
+			bool CopyFrom(const GPUBuffer& buffer, std::size_t src_offset = 0, std::size_t dst_offset = 0) noexcept;
 
 			void Swap(GPUBuffer& buffer) noexcept;
 
@@ -79,7 +79,8 @@ namespace Scop
 				m_index_offset = vertex_size;
 				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name));
 			}
-			// Full flemme de faire les fonctions SetData
+			void SetVertexData(CPUBuffer data);
+			void SetIndexData(CPUBuffer data);
 			inline void BindVertex(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindVertexBuffers(cmd, 0, 1, &m_buffer, &m_vertex_offset); }
 			inline void BindIndex(VkCommandBuffer cmd) const noexcept { RenderCore::Get().vkCmdBindIndexBuffer(cmd, m_buffer, m_index_offset, VK_INDEX_TYPE_UINT32); }
 

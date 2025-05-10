@@ -17,7 +17,7 @@ class Chunk
 		[[nodiscard]] std::uint32_t GetBlock(Scop::Vec3i position) const noexcept;
 		[[nodiscard]] inline Scop::NonOwningPtr<Scop::Actor> GetActor() const noexcept { return p_actor; }
 
-		~Chunk() = default;
+		~Chunk();
 
 	private:
 		std::vector<std::vector<std::vector<std::uint32_t>>> m_data; // Should be a flat array but I cannot manage to flatten the 3D coordinates correctly

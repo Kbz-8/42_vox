@@ -45,6 +45,8 @@ namespace Scop
 		pipeline.BindPipeline(cmd, 0, {});
 		for(auto actor : scene.GetActors())
 		{
+			if(!actor->IsVisible())
+				continue;
 			ModelData model_data;
 			model_data.model_mat = Mat4f::Identity();
 			model_data.model_mat.SetTranslation(actor->GetPosition() - actor->GetModel().GetCenter());

@@ -24,6 +24,7 @@ namespace Scop
 			inline void SetPosition(Vec3f position) noexcept { m_position = position; }
 			inline void SetScale(Vec3f scale) noexcept { m_scale = scale; }
 			inline void SetOrientation(Quatf orientation) noexcept { m_orientation = orientation; }
+			inline void SetVisibility(bool show) noexcept { m_is_visible = show; }
 
 			[[nodiscard]] inline const Vec4f& GetColor() const noexcept { return m_color; }
 			[[nodiscard]] inline const Vec3f& GetPosition() const noexcept { return m_position; }
@@ -32,6 +33,7 @@ namespace Scop
 			[[nodiscard]] inline const Model& GetModel() const noexcept { return m_model; }
 			[[nodiscard]] inline Model& GetModelRef() noexcept { return m_model; }
 			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
+			[[nodiscard]] inline bool IsVisible() const noexcept { return m_is_visible; }
 
 			~Actor();
 
@@ -46,6 +48,7 @@ namespace Scop
 			Vec3f m_scale = Vec3f{ 1.0f, 1.0f, 1.0f };
 			std::shared_ptr<ActorScript> p_script;
 			std::uint64_t m_uuid;
+			bool m_is_visible = true;
 	};
 }
 

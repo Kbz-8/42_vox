@@ -27,6 +27,7 @@ namespace Scop
 			[[nodiscard]] inline std::shared_ptr<Material> GetMaterial(std::size_t mesh_index) { return m_materials[mesh_index]; }
 			[[nodiscard]] inline std::vector<std::shared_ptr<Material>>& GetAllMaterials() { return m_materials; }
 			[[nodiscard]] inline Vec3f GetCenter() const noexcept { return m_center; }
+			[[nodiscard]] inline std::shared_ptr<Mesh> GetMesh() const { return p_mesh; }
 
 			void Draw(VkCommandBuffer cmd, const DescriptorSet& matrices_set, const class GraphicPipeline& pipeline, DescriptorSet& set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const;
 
