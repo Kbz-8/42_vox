@@ -13,6 +13,7 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_narrator(scene.CreateNarrat
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
 		GenerateWorld();
+		Upload();
 	};
 
 	m_narrator.AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
@@ -36,7 +37,6 @@ void World::GenerateWorld()
 	if(current_chunk_position == m_previous_chunk_position)
 		return;
 
-	#pragma omp parallel for
 	for(auto it = m_chunks.begin(); it != m_chunks.end();)
 	{
 		Scop::Vec3i pos = it->first;
@@ -53,10 +53,8 @@ void World::GenerateWorld()
 			++it;
 	}
 
-	#pragma omp parallel for
 	for(std::int32_t x = x_chunk - RENDER_DISTANCE; x <= x_chunk + RENDER_DISTANCE; x++)
 	{
-		#pragma omp parallel for
 		for(std::int32_t z = z_chunk - RENDER_DISTANCE; z <= z_chunk + RENDER_DISTANCE; z++)
 		{
 			auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
@@ -69,4 +67,10 @@ void World::GenerateWorld()
 		chunk.second.GenerateMesh();
 
 	m_previous_chunk_position = current_chunk_position;
+}
+
+void World::Upload()
+{
+	for(auto& chunk : m_chunks)
+		chunk.second.UploadMesh();
 }

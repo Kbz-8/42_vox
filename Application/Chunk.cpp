@@ -4,26 +4,17 @@
 
 #include <cmath>
 
-Chunk::Chunk(World& world, Scop::Vec2i offset) : m_offset(offset), m_position(std::move(offset) * Scop::Vec2i{ CHUNK_SIZE.x, CHUNK_SIZE.z }), m_world(world)
+#define CHUNK_POS_TO_INDEX(px, py, pz) (px * CHUNK_SIZE.x * CHUNK_SIZE.z + pz * CHUNK_SIZE.z + py)
+
+Chunk::Chunk(World& world, Scop::Vec2i offset) : m_data(CHUNK_VOLUME, 0), m_offset(offset), m_position(std::move(offset) * Scop::Vec2i{ CHUNK_SIZE.x, CHUNK_SIZE.z }), m_world(world)
 {
-	m_data.resize(CHUNK_SIZE.x);
-	for(auto& z: m_data)
-	{
-		z.resize(CHUNK_SIZE.z);
-		for(auto& y: z)
-			y.resize(CHUNK_SIZE.y);
-	}
 }
 
 void Chunk::GenerateChunk()
 {
 	if(p_actor)
 		return;
-	for(auto& z: m_data)
-	{
-		for(auto& y: z)
-			std::fill(y.begin(), y.end(), 0);
-	}
+	std::memset(m_data.data(), 0, m_data.size() * sizeof(std::uint32_t));
 
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
@@ -32,7 +23,7 @@ void Chunk::GenerateChunk()
 			// Implement noise here
 			std::uint32_t height = 4 + std::sin(x) + std::cos(z);
 			for(std::uint32_t y = 0; y < height; y++)
-				m_data[x][z][y] = 1;
+				m_data[CHUNK_POS_TO_INDEX(x, y, z)] = 1;
 		}
 	}
 }
@@ -42,10 +33,9 @@ void Chunk::GenerateMesh()
 	if(p_actor)
 		return;
 
-	std::vector<Scop::Vertex> mesh_data(CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z);
-	std::vector<std::uint32_t> indices(CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z);
+	m_mesh_data.clear();
+	m_mesh_index_data.clear();
 
-	std::size_t index = 0;
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
@@ -56,95 +46,97 @@ void Chunk::GenerateMesh()
 					continue;
 				if(!GetBlock(Scop::Vec3i(x, y, static_cast<std::int32_t>(z) - 1)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[0].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  BLOCK_MESH[0].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[1].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[1].normal,  BLOCK_MESH[1].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[2].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[2].normal,  BLOCK_MESH[2].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[0].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  BLOCK_MESH[0].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[1].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[1].normal,  BLOCK_MESH[1].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[2].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[2].normal,  BLOCK_MESH[2].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[3].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[3].normal,  BLOCK_MESH[3].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[4].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[4].normal,  BLOCK_MESH[4].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[5].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[5].normal,  BLOCK_MESH[5].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[3].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[3].normal,  BLOCK_MESH[3].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[4].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[4].normal,  BLOCK_MESH[4].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[5].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[5].normal,  BLOCK_MESH[5].uv));
 				}
 
 				if(!GetBlock(Scop::Vec3i(x, y, z + 1)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[6].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[6].normal,  BLOCK_MESH[6].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[7].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[7].normal,  BLOCK_MESH[7].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[8].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[8].normal,  BLOCK_MESH[8].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[6].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[6].normal,  BLOCK_MESH[6].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[7].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[7].normal,  BLOCK_MESH[7].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[8].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[8].normal,  BLOCK_MESH[8].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[9].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[9].normal,  BLOCK_MESH[9].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[10].position + Scop::Vec3f(x, y, z), BLOCK_MESH[10].normal, BLOCK_MESH[10].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[11].position + Scop::Vec3f(x, y, z), BLOCK_MESH[11].normal, BLOCK_MESH[11].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[9].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[9].normal,  BLOCK_MESH[9].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[10].position + Scop::Vec3f(x, y, z), BLOCK_MESH[10].normal, BLOCK_MESH[10].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[11].position + Scop::Vec3f(x, y, z), BLOCK_MESH[11].normal, BLOCK_MESH[11].uv));
 				}
 
 				if(!GetBlock(Scop::Vec3i(static_cast<std::int32_t>(x) - 1, y, z)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[12].position + Scop::Vec3f(x, y, z), BLOCK_MESH[12].normal, BLOCK_MESH[12].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[13].position + Scop::Vec3f(x, y, z), BLOCK_MESH[13].normal, BLOCK_MESH[13].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[14].position + Scop::Vec3f(x, y, z), BLOCK_MESH[14].normal, BLOCK_MESH[14].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[12].position + Scop::Vec3f(x, y, z), BLOCK_MESH[12].normal, BLOCK_MESH[12].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[13].position + Scop::Vec3f(x, y, z), BLOCK_MESH[13].normal, BLOCK_MESH[13].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[14].position + Scop::Vec3f(x, y, z), BLOCK_MESH[14].normal, BLOCK_MESH[14].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[15].position + Scop::Vec3f(x, y, z), BLOCK_MESH[15].normal, BLOCK_MESH[15].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[16].position + Scop::Vec3f(x, y, z), BLOCK_MESH[16].normal, BLOCK_MESH[16].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[17].position + Scop::Vec3f(x, y, z), BLOCK_MESH[17].normal, BLOCK_MESH[17].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[15].position + Scop::Vec3f(x, y, z), BLOCK_MESH[15].normal, BLOCK_MESH[15].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[16].position + Scop::Vec3f(x, y, z), BLOCK_MESH[16].normal, BLOCK_MESH[16].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[17].position + Scop::Vec3f(x, y, z), BLOCK_MESH[17].normal, BLOCK_MESH[17].uv));
 				}
 
 				if(!GetBlock(Scop::Vec3i(x + 1, y, z)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[18].position + Scop::Vec3f(x, y, z), BLOCK_MESH[18].normal, BLOCK_MESH[18].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[19].position + Scop::Vec3f(x, y, z), BLOCK_MESH[19].normal, BLOCK_MESH[19].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[20].position + Scop::Vec3f(x, y, z), BLOCK_MESH[20].normal, BLOCK_MESH[20].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[18].position + Scop::Vec3f(x, y, z), BLOCK_MESH[18].normal, BLOCK_MESH[18].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[19].position + Scop::Vec3f(x, y, z), BLOCK_MESH[19].normal, BLOCK_MESH[19].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[20].position + Scop::Vec3f(x, y, z), BLOCK_MESH[20].normal, BLOCK_MESH[20].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[21].position + Scop::Vec3f(x, y, z), BLOCK_MESH[21].normal, BLOCK_MESH[21].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[22].position + Scop::Vec3f(x, y, z), BLOCK_MESH[22].normal, BLOCK_MESH[22].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[23].position + Scop::Vec3f(x, y, z), BLOCK_MESH[23].normal, BLOCK_MESH[23].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[21].position + Scop::Vec3f(x, y, z), BLOCK_MESH[21].normal, BLOCK_MESH[21].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[22].position + Scop::Vec3f(x, y, z), BLOCK_MESH[22].normal, BLOCK_MESH[22].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[23].position + Scop::Vec3f(x, y, z), BLOCK_MESH[23].normal, BLOCK_MESH[23].uv));
 				}
 
 				if(!GetBlock(Scop::Vec3i(x, static_cast<std::int32_t>(y) - 1, z)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[24].position + Scop::Vec3f(x, y, z), BLOCK_MESH[24].normal, BLOCK_MESH[24].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[25].position + Scop::Vec3f(x, y, z), BLOCK_MESH[25].normal, BLOCK_MESH[25].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[26].position + Scop::Vec3f(x, y, z), BLOCK_MESH[26].normal, BLOCK_MESH[26].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[24].position + Scop::Vec3f(x, y, z), BLOCK_MESH[24].normal, BLOCK_MESH[24].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[25].position + Scop::Vec3f(x, y, z), BLOCK_MESH[25].normal, BLOCK_MESH[25].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[26].position + Scop::Vec3f(x, y, z), BLOCK_MESH[26].normal, BLOCK_MESH[26].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[27].position + Scop::Vec3f(x, y, z), BLOCK_MESH[27].normal, BLOCK_MESH[27].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[28].position + Scop::Vec3f(x, y, z), BLOCK_MESH[28].normal, BLOCK_MESH[28].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[29].position + Scop::Vec3f(x, y, z), BLOCK_MESH[29].normal, BLOCK_MESH[29].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[27].position + Scop::Vec3f(x, y, z), BLOCK_MESH[27].normal, BLOCK_MESH[27].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[28].position + Scop::Vec3f(x, y, z), BLOCK_MESH[28].normal, BLOCK_MESH[28].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[29].position + Scop::Vec3f(x, y, z), BLOCK_MESH[29].normal, BLOCK_MESH[29].uv));
 				}
 
 				if(!GetBlock(Scop::Vec3i(x, y + 1, z)))
 				{
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[30].position + Scop::Vec3f(x, y, z), BLOCK_MESH[30].normal, BLOCK_MESH[30].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[31].position + Scop::Vec3f(x, y, z), BLOCK_MESH[31].normal, BLOCK_MESH[31].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[32].position + Scop::Vec3f(x, y, z), BLOCK_MESH[32].normal, BLOCK_MESH[32].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[30].position + Scop::Vec3f(x, y, z), BLOCK_MESH[30].normal, BLOCK_MESH[30].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[31].position + Scop::Vec3f(x, y, z), BLOCK_MESH[31].normal, BLOCK_MESH[31].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[32].position + Scop::Vec3f(x, y, z), BLOCK_MESH[32].normal, BLOCK_MESH[32].uv));
 
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[33].position + Scop::Vec3f(x, y, z), BLOCK_MESH[33].normal, BLOCK_MESH[33].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[34].position + Scop::Vec3f(x, y, z), BLOCK_MESH[34].normal, BLOCK_MESH[34].uv };
-					mesh_data[index++] = Scop::Vertex{ BLOCK_MESH[35].position + Scop::Vec3f(x, y, z), BLOCK_MESH[35].normal, BLOCK_MESH[35].uv };
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[33].position + Scop::Vec3f(x, y, z), BLOCK_MESH[33].normal, BLOCK_MESH[33].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[34].position + Scop::Vec3f(x, y, z), BLOCK_MESH[34].normal, BLOCK_MESH[34].uv));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[35].position + Scop::Vec3f(x, y, z), BLOCK_MESH[35].normal, BLOCK_MESH[35].uv));
 				}
 			}
 		}
 	}
 
-	for(std::uint32_t i = 0; i < index; i++)
-		indices[i] = i;
+	for(std::uint32_t i = 0; i < m_mesh_data.size(); i++)
+		m_mesh_index_data.push_back(i);
+}
 
-	std::cout << index << std::endl;
+void Chunk::UploadMesh()
+{
+	if(p_actor)
+		return;
+	std::shared_ptr<Scop::Mesh> mesh = std::make_shared<Scop::Mesh>();
+	mesh->AddSubMesh({ std::move(m_mesh_data), std::move(m_mesh_index_data) });
 
-	p_actor = m_world.GetMeshPool().RequestActor(m_world.GetScene());
-	p_actor->GetModelRef().GetMesh()->GetSubMesh(0).SetData(mesh_data, indices, index);
-	p_actor->GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
-	p_actor->SetScale(Scop::Vec3f{ 2.0f });
-	p_actor->SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
+	Scop::Actor& actor = m_world.GetScene().CreateActor(mesh);
+	//actor.GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
+	actor.SetScale(Scop::Vec3f{ 2.0f });
+	actor.SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
+	p_actor = &actor;
 }
 
 std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 {
-	if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
+	if(position.x < 0 || position.x >= CHUNK_SIZE.x || position.z < 0 || position.z >= CHUNK_SIZE.z || position.y < 0)
 		return 1;
-	if(position.x < m_data.size() && position.z < m_data[position.x].size() && position.y < m_data[position.x][position.z].size())
-		return m_data[position.x][position.z][position.y];
+	std::uint32_t index = CHUNK_POS_TO_INDEX(position.x, position.y, position.z);
+	if(index < m_data.size())
+		return m_data[index];
 	return 0;
-}
-
-Chunk::~Chunk()
-{
-	m_world.GetMeshPool().ReturnToPool(p_actor);
 }

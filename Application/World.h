@@ -7,9 +7,8 @@
 
 #include <Chunk.h>
 #include <Utils.h>
-#include <MeshPool.h>
 
-constexpr std::uint8_t RENDER_DISTANCE = 2;
+constexpr std::uint8_t RENDER_DISTANCE = 1;
 
 class World
 {
@@ -19,16 +18,15 @@ class World
 		[[nodiscard]] inline Scop::Scene& GetScene() noexcept { return m_scene; }
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }
 		[[nodiscard]] Scop::NonOwningPtr<Chunk> GetChunk(Scop::Vec2i position);
-		[[nodiscard]] inline MeshPool& GetMeshPool() { return m_mesh_pool; }
 
 		~World() = default;
 
 	private:
 		void GenerateWorld();
+		void Upload();
 
 	private:
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
-		MeshPool m_mesh_pool;
 		std::shared_ptr<Scop::Material> p_block_material;
 		Scop::Narrator& m_narrator;
 		Scop::Scene& m_scene;

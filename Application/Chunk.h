@@ -2,10 +2,13 @@
 #define CHUNK_H
 
 #include <vector>
+#include <atomic>
+
 #include <ScopGraphics.h>
 #include <ScopMaths.h>
 
 constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 32, 256, 32 };
+constexpr std::uint32_t CHUNK_VOLUME = CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z;
 
 class Chunk
 {
@@ -14,13 +17,16 @@ class Chunk
 
 		void GenerateChunk();
 		void GenerateMesh();
+		void UploadMesh();
 		[[nodiscard]] std::uint32_t GetBlock(Scop::Vec3i position) const noexcept;
 		[[nodiscard]] inline Scop::NonOwningPtr<Scop::Actor> GetActor() const noexcept { return p_actor; }
 
-		~Chunk();
+		~Chunk() = default;
 
 	private:
-		std::vector<std::vector<std::vector<std::uint32_t>>> m_data; // Should be a flat array but I cannot manage to flatten the 3D coordinates correctly
+		std::vector<Scop::Vertex> m_mesh_data;
+		std::vector<std::uint32_t> m_mesh_index_data;
+		std::vector<std::uint32_t> m_data;
 		Scop::Vec2i m_offset; // In chunks
 		Scop::Vec2i m_position; // In blocks
 		class World& m_world;
