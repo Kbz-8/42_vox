@@ -6,8 +6,8 @@
 
 namespace Scop
 {
-	MemoryChunk::MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index)
-		: m_device(device), m_physical(physical), m_size(size), m_memory_type_index(memory_type_index)
+	MemoryChunk::MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index, bool is_dedicated)
+		: m_device(device), m_physical(physical), m_size(size), m_memory_type_index(memory_type_index), m_is_dedicated(is_dedicated)
 	{
 		Verify(device != VK_NULL_HANDLE, "Memory Chunk : invalid device");
 		VkMemoryAllocateInfo alloc_info{};

@@ -4,7 +4,7 @@
 
 namespace Scop
 {
-	void GPUBuffer::Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name)
+	void GPUBuffer::Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name, bool dedicated_alloc)
 	{
 		if(type == BufferType::Constant)
 		{
@@ -30,7 +30,7 @@ namespace Scop
 		if(type == BufferType::Staging && data.Empty())
 			Warning("Vulkan: trying to create staging buffer without data (wtf?)");
 
-		CreateBuffer(size, m_usage, m_flags, std::move(name));
+		CreateBuffer(size, m_usage, m_flags, std::move(name), dedicated_alloc);
 
 		if(!data.Empty())
 		{
@@ -41,7 +41,7 @@ namespace Scop
 			PushToGPU();
 	}
 
-	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name)
+	void GPUBuffer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name, bool dedicated_alloc)
 	{
 		auto device = RenderCore::Get().GetDevice();
 		m_buffer = kvfCreateBuffer(device, usage, size);
@@ -49,7 +49,7 @@ namespace Scop
 		VkMemoryRequirements mem_requirements;
 		RenderCore::Get().vkGetBufferMemoryRequirements(device, m_buffer, &mem_requirements);
 
-		m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
+		m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), dedicated_alloc);
 		//m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
 		RenderCore::Get().vkBindBufferMemory(device, m_buffer, m_memory.memory, m_memory.offset);
 
@@ -73,11 +73,9 @@ namespace Scop
 			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_buffer);
 			name_info.pObjectName = m_name.c_str();
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
-
-			Message("Vulkan: % buffer created", m_name);
-		#else
-			Message("Vulkan: buffer created");
 		#endif
+
+		m_is_dedicated_alloc = dedicated_alloc;
 
 		s_buffer_count++;
 	}
@@ -99,10 +97,16 @@ namespace Scop
 		kvfBeginCommandBuffer(cmd, VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 		kvfCopyBufferToBuffer(cmd, m_buffer, buffer.Get(), buffer.GetSize(), src_offset, dst_offset);
 		kvfEndCommandBuffer(cmd);
-		VkFence fence = kvfCreateFence(RenderCore::Get().GetDevice());
-		kvfSubmitSingleTimeCommandBuffer(RenderCore::Get().GetDevice(), cmd, KVF_GRAPHICS_QUEUE, fence);
-		kvfWaitForFence(RenderCore::Get().GetDevice(), fence);	
-		kvfDestroyFence(RenderCore::Get().GetDevice(), fence);
+		if(!RenderCore::Get().StackSubmits())
+		{
+			VkFence fence = kvfCreateFence(RenderCore::Get().GetDevice());
+			kvfSubmitSingleTimeCommandBuffer(RenderCore::Get().GetDevice(), cmd, KVF_GRAPHICS_QUEUE, fence);
+			kvfWaitForFence(RenderCore::Get().GetDevice(), fence);	
+			kvfDestroyFence(RenderCore::Get().GetDevice(), fence);
+			kvfDestroyCommandBuffer(RenderCore::Get().GetDevice(), cmd);
+		}
+		else
+			kvfSubmitSingleTimeCommandBuffer(RenderCore::Get().GetDevice(), cmd, KVF_GRAPHICS_QUEUE, VK_NULL_HANDLE);
 		return true;
 	}
 
@@ -111,12 +115,11 @@ namespace Scop
 		GPUBuffer new_buffer;
 		new_buffer.m_usage = (this->m_usage & 0xFFFFFFFC) | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 		new_buffer.m_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags, m_name);
+		new_buffer.CreateBuffer(m_memory.size, new_buffer.m_usage, new_buffer.m_flags, m_name, m_is_dedicated_alloc);
 
 		if(new_buffer.CopyFrom(*this))
 			Swap(new_buffer);
 		new_buffer.Destroy();
-		Message("Vulkan: pushed buffer to GPU memory");
 	}
 
 	void GPUBuffer::Destroy() noexcept
@@ -128,7 +131,6 @@ namespace Scop
 		RenderCore::Get().GetAllocator().Deallocate(m_memory);
 		m_buffer = VK_NULL_HANDLE;
 		m_memory = NULL_MEMORY_BLOCK;
-		Message("Vulkan: destroyed buffer");
 		s_buffer_count--;
 	}
 

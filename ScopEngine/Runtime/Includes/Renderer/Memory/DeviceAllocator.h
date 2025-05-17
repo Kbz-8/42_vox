@@ -1,6 +1,7 @@
 #ifndef __SCOP_VULKAN_MEMORY_DEVICE_ALLOCATOR__
 #define __SCOP_VULKAN_MEMORY_DEVICE_ALLOCATOR__
 
+#include <mutex>
 #include <vector>
 #include <memory>
 #include <cstdint>
@@ -29,6 +30,8 @@ namespace Scop
 			VkDevice m_device = VK_NULL_HANDLE;
 			VkPhysicalDevice m_physical = VK_NULL_HANDLE;
 			std::size_t m_allocations_count = 0;
+			std::mutex m_alloc_mutex;
+			std::mutex m_dealloc_mutex;
 	};
 }
 

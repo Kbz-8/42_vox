@@ -45,7 +45,7 @@ _GRAY := $(shell $(TPUT) setaf 8)
 _PURPLE := $(shell $(TPUT) setaf 5)
 
 ifeq ($(DEBUG), true)
-	CXXFLAGS += -g -D DEBUG -D IMGUI_IMPL_VULKAN_NO_PROTOTYPES -I ThirdParty/imgui
+	CXXFLAGS += -g3 -D DEBUG -D IMGUI_IMPL_VULKAN_NO_PROTOTYPES -I ThirdParty/imgui
 	SRCS += $(wildcard $(addsuffix /*.cpp, ./Runtime/Sources/Debug))
 	SRCS += $(wildcard $(addsuffix /*.cpp, ./ThirdParty/imgui))
 	SRCS += $(wildcard $(addsuffix /*.cpp, ./ThirdParty/imgui/backends))

@@ -12,13 +12,17 @@ namespace Scop
 		if(p_mesh)
 			m_materials.resize(p_mesh->GetSubMeshCount() + 1);
 
-		CPUBuffer default_pixels{ kvfFormatSize(VK_FORMAT_R8G8B8A8_SRGB) };
-		default_pixels.GetDataAs<std::uint32_t>()[0] = 0xFFFFFFFF;
-		std::shared_ptr<Texture> default_texture = std::make_shared<Texture>(std::move(default_pixels), 1, 1, VK_FORMAT_R8G8B8A8_SRGB);
+		if(!s_default_material)
+		{
+			CPUBuffer default_pixels{ kvfFormatSize(VK_FORMAT_R8G8B8A8_SRGB) };
+			default_pixels.GetDataAs<std::uint32_t>()[0] = 0xFFFFFFFF;
+			std::shared_ptr<Texture> default_texture = std::make_shared<Texture>(std::move(default_pixels), 1, 1, VK_FORMAT_R8G8B8A8_SRGB);
 
-		MaterialTextures textures;
-		textures.albedo = default_texture;
-		m_materials.back() = std::make_shared<Material>(textures);
+			MaterialTextures textures;
+			textures.albedo = default_texture;
+			s_default_material = std::make_shared<Material>(textures);
+		}
+		m_materials.back() = s_default_material;
 	}
 
 	void Model::Draw(VkCommandBuffer cmd, const DescriptorSet& matrices_set, const GraphicPipeline& pipeline, DescriptorSet& set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const

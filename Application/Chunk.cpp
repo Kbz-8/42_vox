@@ -2,8 +2,6 @@
 #include <Block.h>
 #include <World.h>
 
-#include <cmath>
-
 #define CHUNK_POS_TO_INDEX(px, py, pz) (px * CHUNK_SIZE.x * CHUNK_SIZE.z + pz * CHUNK_SIZE.z + py)
 
 Chunk::Chunk(World& world, Scop::Vec2i offset) : m_data(CHUNK_VOLUME, 0), m_offset(offset), m_position(std::move(offset) * Scop::Vec2i{ CHUNK_SIZE.x, CHUNK_SIZE.z }), m_world(world)
@@ -21,7 +19,7 @@ void Chunk::GenerateChunk()
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
 		{
 			// Implement noise here
-			std::uint32_t height = 4 + std::sin(x) + std::cos(z);
+			std::uint32_t height = std::min(static_cast<std::uint32_t>(4 + (std::sin(x) + std::cos(z)) * 2), CHUNK_SIZE.y);
 			for(std::uint32_t y = 0; y < height; y++)
 				m_data[CHUNK_POS_TO_INDEX(x, y, z)] = 1;
 		}
@@ -125,7 +123,7 @@ void Chunk::UploadMesh()
 	mesh->AddSubMesh({ std::move(m_mesh_data), std::move(m_mesh_index_data) });
 
 	Scop::Actor& actor = m_world.GetScene().CreateActor(mesh);
-	//actor.GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
+	actor.GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
 	actor.SetScale(Scop::Vec3f{ 2.0f });
 	actor.SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
 	p_actor = &actor;

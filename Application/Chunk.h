@@ -2,12 +2,11 @@
 #define CHUNK_H
 
 #include <vector>
-#include <atomic>
 
 #include <ScopGraphics.h>
 #include <ScopMaths.h>
 
-constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 32, 256, 32 };
+constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 32, 32, 32 };
 constexpr std::uint32_t CHUNK_VOLUME = CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z;
 
 class Chunk

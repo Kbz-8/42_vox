@@ -27,7 +27,7 @@ namespace Scop
 					std::memcpy(data.GetData() + vertices.size() * sizeof(Vertex), indices.data(), indices.size() * sizeof(std::uint32_t));
 					buffer.Init(vertices.size() * sizeof(Vertex), indices.size() * sizeof(std::uint32_t), 0, std::move(data));
 					this->index_size = index_size == 0 ? indices.size() : index_size;
-					triangle_count = index_size / 3;
+					triangle_count = this->index_size / 3;
 				}
 
 				inline void SetData(const std::vector<Vertex>& vertices, const std::vector<std::uint32_t>& indices, std::size_t index_size = 0)
@@ -41,7 +41,7 @@ namespace Scop
 					buffer.SetVertexData(std::move(index_data));
 
 					this->index_size = index_size == 0 ? indices.size() : index_size;
-					triangle_count = index_size / 3;
+					triangle_count = this->index_size / 3;
 				}
 			};
 

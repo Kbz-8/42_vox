@@ -1,3 +1,5 @@
+#include <future>
+
 #include <ScopCore.h>
 
 #include <World.h>
@@ -7,13 +9,32 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_narrator(scene.CreateNarrat
 {
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
-	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "prototype.bmp", map_size), map_size.x, map_size.y);
+	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "dirt.bmp", map_size), map_size.x, map_size.y);
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
-		GenerateWorld();
-		Upload();
+		Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
+		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
+		std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
+		Scop::Vec2i current_chunk_position{ x_chunk, z_chunk };
+
+		if(m_generation_status != GenerationState::Ready || current_chunk_position != m_previous_chunk_position)
+		{
+			if(m_generation_status == GenerationState::Ready)
+			{
+				UnloadChunks(current_chunk_position);
+				auto _ = std::async(std::launch::async, &World::GenerateWorld, this, current_chunk_position);
+				m_generation_status = GenerationState::Working;
+			}
+			else if(m_generation_status == GenerationState::Finished)
+			{
+				m_generation_status = GenerationState::Ready;
+				m_previous_chunk_position = current_chunk_position;
+			}
+		}
+		if(m_generation_status != GenerationState::Working)
+			Upload();
 	};
 
 	m_narrator.AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
@@ -27,23 +48,14 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_narrator(scene.CreateNarrat
 	return &it->second;
 }
 
-void World::GenerateWorld()
+void World::UnloadChunks(Scop::Vec2i current_chunk_position)
 {
-	Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
-	std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
-	std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
-	Scop::Vec2i current_chunk_position{ x_chunk, z_chunk };
-
-	if(current_chunk_position == m_previous_chunk_position)
-		return;
-
 	for(auto it = m_chunks.begin(); it != m_chunks.end();)
 	{
 		Scop::Vec3i pos = it->first;
-
 		float x_dist = std::abs(pos.x - current_chunk_position.x);
 		float z_dist = std::abs(pos.z - current_chunk_position.y);
-		if(RENDER_DISTANCE < x_dist || RENDER_DISTANCE < z_dist)
+		if(RENDER_DISTANCE_HALF < x_dist || RENDER_DISTANCE_HALF < z_dist)
 		{
 			if(it->second.GetActor())
 				m_scene.RemoveActor(*it->second.GetActor());
@@ -52,25 +64,41 @@ void World::GenerateWorld()
 		else
 			++it;
 	}
+}
 
-	for(std::int32_t x = x_chunk - RENDER_DISTANCE; x <= x_chunk + RENDER_DISTANCE; x++)
+void World::GenerateWorld(Scop::Vec2i current_chunk_position)
+{
+	m_generation_status = GenerationState::Working;
+	std::vector<std::future<void>> futures;
+	for(std::int32_t x = current_chunk_position.x - RENDER_DISTANCE_HALF; x <= current_chunk_position.x + RENDER_DISTANCE_HALF; x++)
 	{
-		for(std::int32_t z = z_chunk - RENDER_DISTANCE; z <= z_chunk + RENDER_DISTANCE; z++)
+		for(std::int32_t z = current_chunk_position.y - RENDER_DISTANCE_HALF; z <= current_chunk_position.y + RENDER_DISTANCE_HALF; z++)
 		{
 			auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 			if(res.second)
-				res.first->second.GenerateChunk();
+			{
+				futures.push_back(std::async(std::launch::async, &Chunk::GenerateChunk, &res.first->second));
+				if(!res.first->second.GetActor())
+					m_chunks_to_upload.Push(res.first->second);
+			}
 		}
 	}
-
-	for(auto& chunk : m_chunks)
-		chunk.second.GenerateMesh();
-
-	m_previous_chunk_position = current_chunk_position;
+	for(auto& future: futures)
+		future.wait();
+	m_generation_status = GenerationState::Finished;
 }
 
 void World::Upload()
 {
-	for(auto& chunk : m_chunks)
-		chunk.second.UploadMesh();
+	if(m_chunks_to_upload.IsEmpty())
+		return;
+	Scop::RenderCore::Get().ShouldStackSubmits(true);
+	for(std::size_t i = 0; i < CHUNKS_UPLOAD_PER_FRAME && !m_chunks_to_upload.IsEmpty(); i++)
+	{
+		auto chunk = m_chunks_to_upload.Pop().get();
+		chunk.GenerateMesh();
+		chunk.UploadMesh();
+	}
+	Scop::RenderCore::Get().WaitQueueIdle(KVF_GRAPHICS_QUEUE);
+	Scop::RenderCore::Get().ShouldStackSubmits(false);
 }

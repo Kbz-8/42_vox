@@ -15,7 +15,7 @@ namespace Scop
 		public:
 			GPUBuffer() = default;
 
-			void Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name = {});
+			void Init(BufferType type, VkDeviceSize size, VkBufferUsageFlags usage, CPUBuffer data, std::string_view name = {}, bool dedicated_alloc = false);
 			void Destroy() noexcept;
 
 			bool CopyFrom(const GPUBuffer& buffer, std::size_t src_offset = 0, std::size_t dst_offset = 0) noexcept;
@@ -43,7 +43,7 @@ namespace Scop
 			MemoryBlock m_memory = NULL_MEMORY_BLOCK;
 
 		private:
-			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name);
+			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name, bool dedicated_alloc);
 
 		private:
 			inline static std::size_t s_buffer_count = 0;
@@ -52,6 +52,7 @@ namespace Scop
 
 			VkBufferUsageFlags m_usage = 0;
 			VkMemoryPropertyFlags m_flags = 0;
+			bool m_is_dedicated_alloc = false;
 	};
 
 	class VertexBuffer : public GPUBuffer
@@ -77,7 +78,7 @@ namespace Scop
 			{
 				m_vertex_offset = 0;
 				m_index_offset = vertex_size;
-				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name));
+				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name), true);
 			}
 			void SetVertexData(CPUBuffer data);
 			void SetIndexData(CPUBuffer data);

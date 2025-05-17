@@ -12,6 +12,7 @@ namespace Scop
 	{
 		Verify(m_device != VK_NULL_HANDLE, "invalid device");
 		Verify(m_physical != VK_NULL_HANDLE, "invalid physical device");
+		const std::lock_guard<std::mutex> guard(m_alloc_mutex);
 		if(!dedicated_chunk)
 		{
 			for(auto& chunk : m_chunks)
@@ -24,7 +25,7 @@ namespace Scop
 				}
 			}
 		}
-		m_chunks.emplace_back(std::make_unique<MemoryChunk>(m_device, m_physical, (CHUNK_SIZE < size + alignment ? size + alignment : CHUNK_SIZE), memory_type_index));
+		m_chunks.emplace_back(std::make_unique<MemoryChunk>(m_device, m_physical, (CHUNK_SIZE < size + alignment ? size + alignment : CHUNK_SIZE), memory_type_index, dedicated_chunk));
 		std::optional<MemoryBlock> block = m_chunks.back()->Allocate(size, alignment);
 		m_allocations_count++;
 		if(block.has_value())
@@ -37,11 +38,17 @@ namespace Scop
 	{
 		Verify(m_device != VK_NULL_HANDLE, "invalid device");
 		Verify(m_physical != VK_NULL_HANDLE, "invalid physical device");
-		for(auto& chunk : m_chunks)
+		const std::lock_guard<std::mutex> guard(m_dealloc_mutex);
+		for(auto it = m_chunks.begin(); it != m_chunks.end(); ++it)
 		{
-			if(chunk->Has(block))
+			if((*it)->Has(block))
 			{
-				chunk->Deallocate(block);
+				(*it)->Deallocate(block);
+				if((*it)->IsDedicated())
+				{
+					m_chunks.erase(it);
+					m_allocations_count--;
+				}
 				return;
 			}
 		}

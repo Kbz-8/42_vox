@@ -34,6 +34,8 @@ namespace Scop
 			~Model() = default;
 
 		private:
+			inline static std::shared_ptr<Material> s_default_material = nullptr;
+
 			Vec3f m_center = { 0.0f, 0.0f, 0.0f };
 			std::vector<std::shared_ptr<Material>> m_materials;
 			std::shared_ptr<Mesh> p_mesh;

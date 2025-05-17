@@ -57,9 +57,6 @@ namespace Scop
 			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_image);
 			name_info.pObjectName = name.data();
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
-			Message("Vulkan: % image created", name);
-		#else
-			Message("Vulkan: image created");
 		#endif
 
 		s_image_count++;
@@ -151,7 +148,6 @@ namespace Scop
 			m_memory = NULL_MEMORY_BLOCK;
 			kvfDestroyImage(RenderCore::Get().GetDevice(), m_image);
 		}
-		Message("Vulkan: image destroyed");
 		m_image = VK_NULL_HANDLE;
 		m_memory = NULL_MEMORY_BLOCK;
 		m_image = VK_NULL_HANDLE;
