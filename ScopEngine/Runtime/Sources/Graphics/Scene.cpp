@@ -24,49 +24,37 @@ namespace Scop
 
 	Actor& Scene::CreateActor(Model model) noexcept
 	{
-		std::shared_ptr<Actor> actor = std::make_shared<Actor>(std::move(model));
-		m_actors.push_back(actor);
-		return *actor;
+		return m_actors.emplace_back(std::move(model));
 	}
 
 	Actor& Scene::CreateActor(std::string_view name, Model model)
 	{
-		std::shared_ptr<Actor> actor = std::make_shared<Actor>(std::move(model));
-		m_actors.push_back(actor);
-		return *actor;
+		return m_actors.emplace_back(std::move(model));
 	}
 
 	Narrator& Scene::CreateNarrator() noexcept
 	{
-		std::shared_ptr<Narrator> narrator = std::make_shared<Narrator>();
-		m_narrators.push_back(narrator);
-		return *narrator;
+		return m_narrators.emplace_back();
 	}
 
 	Narrator& Scene::CreateNarrator(std::string_view name)
 	{
-		std::shared_ptr<Narrator> narrator = std::make_shared<Narrator>();
-		m_narrators.push_back(narrator);
-		return *narrator;
+		return m_narrators.emplace_back();
 	}
 
 	Sprite& Scene::CreateSprite(std::shared_ptr<Texture> texture) noexcept
 	{
-		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture);
-		m_sprites.push_back(sprite);
-		return *sprite;
+		return m_sprites.emplace_back(texture);
 	}
 
 	Sprite& Scene::CreateSprite(std::string_view name, std::shared_ptr<Texture> texture)
 	{
-		std::shared_ptr<Sprite> sprite = std::make_shared<Sprite>(texture);
-		m_sprites.push_back(sprite);
-		return *sprite;
+		return m_sprites.emplace_back(texture);
 	}
 
 	void Scene::RemoveActor(Actor& actor) noexcept
 	{
-		auto it = std::find_if(m_actors.begin(), m_actors.end(), [actor](const std::shared_ptr<Actor> lhs) { return actor.GetUUID() == lhs->GetUUID(); });
+		auto it = std::find_if(m_actors.begin(), m_actors.end(), [actor](const Actor& lhs) { return actor.GetUUID() == lhs.GetUUID(); });
 		if(it == m_actors.end())
 		{
 			Error("Actor not found");
@@ -77,7 +65,7 @@ namespace Scop
 
 	void Scene::RemoveNarrator(Narrator& narrator) noexcept
 	{
-		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [narrator](const std::shared_ptr<Narrator> lhs) { return narrator.GetUUID() == lhs->GetUUID(); });
+		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [narrator](const Narrator& lhs) { return narrator.GetUUID() == lhs.GetUUID(); });
 		if(it == m_narrators.end())
 		{
 			Error("Narrator not found");
@@ -88,7 +76,7 @@ namespace Scop
 
 	void Scene::RemoveSprite(Sprite& sprite) noexcept
 	{
-		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [sprite](const std::shared_ptr<Sprite> lhs) { return sprite.GetUUID() == lhs->GetUUID(); });
+		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [sprite](const Sprite& lhs) { return sprite.GetUUID() == lhs.GetUUID(); });
 		if(it == m_sprites.end())
 		{
 			Error("Sprite not found");
@@ -148,11 +136,11 @@ namespace Scop
 	void Scene::Update(Inputs& input, float timestep, float aspect)
 	{
 		for(auto actor : m_actors)
-			actor->Update(this, input, timestep);
+			actor.Update(this, input, timestep);
 		for(auto narrator : m_narrators)
-			narrator->Update(this, input, timestep);
+			narrator.Update(this, input, timestep);
 		for(auto sprite : m_sprites)
-			sprite->Update(this, input, timestep);
+			sprite.Update(this, input, timestep);
 		if(m_descriptor.camera)
 			m_descriptor.camera->Update(input, aspect, timestep);
 	}

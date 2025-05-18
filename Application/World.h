@@ -10,7 +10,6 @@
 #include <Utils.h>
 
 constexpr std::uint8_t RENDER_DISTANCE = 10;
-constexpr std::uint8_t RENDER_DISTANCE_HALF = RENDER_DISTANCE / 2;
 constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 1;
 
 enum class GenerationState: std::uint8_t
@@ -40,7 +39,6 @@ class World
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
 		ThreadSafeQueue<std::reference_wrapper<Chunk>> m_chunks_to_upload;
 		std::shared_ptr<Scop::Material> p_block_material;
-		Scop::Narrator& m_narrator;
 		Scop::Scene& m_scene;
 		Scop::Vec2i m_previous_chunk_position;
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;

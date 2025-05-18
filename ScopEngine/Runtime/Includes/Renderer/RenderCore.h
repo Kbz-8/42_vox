@@ -12,7 +12,7 @@
 
 namespace Scop
 {
-	constexpr const int MAX_FRAMES_IN_FLIGHT = 2;
+	constexpr const int MAX_FRAMES_IN_FLIGHT = 3;
 
 	constexpr const int DEFAULT_VERTEX_SHADER_ID = 0;
 	constexpr const int DEFAULT_FRAGMENT_SHADER_ID = 1;

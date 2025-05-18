@@ -117,7 +117,7 @@ void Chunk::GenerateMesh()
 
 void Chunk::UploadMesh()
 {
-	if(p_actor)
+	if(p_actor || m_mesh_data.empty() || m_mesh_index_data.empty())
 		return;
 	std::shared_ptr<Scop::Mesh> mesh = std::make_shared<Scop::Mesh>();
 	mesh->AddSubMesh({ std::move(m_mesh_data), std::move(m_mesh_index_data) });

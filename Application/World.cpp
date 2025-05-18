@@ -5,7 +5,7 @@
 #include <World.h>
 #include <Utils.h>
 
-World::World(Scop::Scene& scene) : m_scene(scene), m_narrator(scene.CreateNarrator()), m_previous_chunk_position(-1000, 10000)
+World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-1000, 10000)
 {
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
@@ -37,7 +37,7 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_narrator(scene.CreateNarrat
 			Upload();
 	};
 
-	m_narrator.AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
+	m_scene.CreateNarrator().AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
 }
 
 [[nodiscard]] Scop::NonOwningPtr<Chunk> World::GetChunk(Scop::Vec2i position)
@@ -55,7 +55,7 @@ void World::UnloadChunks(Scop::Vec2i current_chunk_position)
 		Scop::Vec3i pos = it->first;
 		float x_dist = std::abs(pos.x - current_chunk_position.x);
 		float z_dist = std::abs(pos.z - current_chunk_position.y);
-		if(RENDER_DISTANCE_HALF < x_dist || RENDER_DISTANCE_HALF < z_dist)
+		if(RENDER_DISTANCE < x_dist || RENDER_DISTANCE < z_dist)
 		{
 			if(it->second.GetActor())
 				m_scene.RemoveActor(*it->second.GetActor());
@@ -69,22 +69,19 @@ void World::UnloadChunks(Scop::Vec2i current_chunk_position)
 void World::GenerateWorld(Scop::Vec2i current_chunk_position)
 {
 	m_generation_status = GenerationState::Working;
-	std::vector<std::future<void>> futures;
-	for(std::int32_t x = current_chunk_position.x - RENDER_DISTANCE_HALF; x <= current_chunk_position.x + RENDER_DISTANCE_HALF; x++)
+	for(std::int32_t x = current_chunk_position.x - RENDER_DISTANCE; x <= current_chunk_position.x + RENDER_DISTANCE; x++)
 	{
-		for(std::int32_t z = current_chunk_position.y - RENDER_DISTANCE_HALF; z <= current_chunk_position.y + RENDER_DISTANCE_HALF; z++)
+		for(std::int32_t z = current_chunk_position.y - RENDER_DISTANCE; z <= current_chunk_position.y + RENDER_DISTANCE; z++)
 		{
 			auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 			if(res.second)
 			{
-				futures.push_back(std::async(std::launch::async, &Chunk::GenerateChunk, &res.first->second));
+				res.first->second.GenerateChunk();
 				if(!res.first->second.GetActor())
 					m_chunks_to_upload.Push(res.first->second);
 			}
 		}
 	}
-	for(auto& future: futures)
-		future.wait();
 	m_generation_status = GenerationState::Finished;
 }
 
@@ -95,9 +92,9 @@ void World::Upload()
 	Scop::RenderCore::Get().ShouldStackSubmits(true);
 	for(std::size_t i = 0; i < CHUNKS_UPLOAD_PER_FRAME && !m_chunks_to_upload.IsEmpty(); i++)
 	{
-		auto chunk = m_chunks_to_upload.Pop().get();
-		chunk.GenerateMesh();
-		chunk.UploadMesh();
+		auto chunk = m_chunks_to_upload.Pop();
+		chunk.get().GenerateMesh();
+		chunk.get().UploadMesh();
 	}
 	Scop::RenderCore::Get().WaitQueueIdle(KVF_GRAPHICS_QUEUE);
 	Scop::RenderCore::Get().ShouldStackSubmits(false);

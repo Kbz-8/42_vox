@@ -43,19 +43,19 @@ namespace Scop
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();
 		pipeline.BindPipeline(cmd, 0, {});
-		for(auto actor : scene.GetActors())
+		for(const auto& actor : scene.GetActors())
 		{
-			if(!actor->IsVisible())
+			if(!actor.IsVisible())
 				continue;
 			ModelData model_data;
 			model_data.model_mat = Mat4f::Identity();
-			model_data.model_mat.SetTranslation(actor->GetPosition() - actor->GetModel().GetCenter());
-			model_data.model_mat.SetScale(actor->GetScale());
-			model_data.model_mat = Mat4f::Translate(-actor->GetModel().GetCenter()) * Mat4f::Rotate(actor->GetOrientation()) * model_data.model_mat;
+			model_data.model_mat.SetTranslation(actor.GetPosition() - actor.GetModel().GetCenter());
+			model_data.model_mat.SetScale(actor.GetScale());
+			model_data.model_mat = Mat4f::Translate(-actor.GetModel().GetCenter()) * Mat4f::Rotate(actor.GetOrientation()) * model_data.model_mat;
 			model_data.normal_mat = model_data.model_mat;
 			model_data.normal_mat.Inverse().Transpose();
 			RenderCore::Get().vkCmdPushConstants(cmd, pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ModelData), &model_data);
-			actor->GetModel().Draw(cmd, *data.matrices_set, pipeline, *data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
+			actor.GetModel().Draw(cmd, *data.matrices_set, pipeline, *data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
 		}
 		pipeline.EndPipeline(cmd);
 	}

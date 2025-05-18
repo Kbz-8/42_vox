@@ -85,18 +85,18 @@ namespace Scop
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();
 		m_pipeline.BindPipeline(cmd, 0, {});
-		for(auto sprite : scene.GetSprites())
+		for(const auto& sprite : scene.GetSprites())
 		{
 			SpriteData sprite_data;
-			sprite_data.position = Vec2f{ static_cast<float>(sprite->GetPosition().x), static_cast<float>(sprite->GetPosition().y) };
-			sprite_data.color = sprite->GetColor();
-			if(!sprite->IsSetInit())
-				sprite->UpdateDescriptorSet(*p_texture_set);
-			sprite->Bind(frame_index, cmd);
-			std::array<VkDescriptorSet, 2> sets = { p_viewer_data_set->GetSet(frame_index), sprite->GetSet(frame_index) };
+			sprite_data.position = Vec2f{ static_cast<float>(sprite.GetPosition().x), static_cast<float>(sprite.GetPosition().y) };
+			sprite_data.color = sprite.GetColor();
+			if(!sprite.IsSetInit())
+				const_cast<Sprite&>(sprite).UpdateDescriptorSet(*p_texture_set);
+			const_cast<Sprite&>(sprite).Bind(frame_index, cmd);
+			std::array<VkDescriptorSet, 2> sets = { p_viewer_data_set->GetSet(frame_index), sprite.GetSet(frame_index) };
 			RenderCore::Get().vkCmdBindDescriptorSets(cmd, m_pipeline.GetPipelineBindPoint(), m_pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
 			RenderCore::Get().vkCmdPushConstants(cmd, m_pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(SpriteData), &sprite_data);
-			sprite->GetMesh()->Draw(cmd, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef());
+			sprite.GetMesh()->Draw(cmd, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef());
 		}
 		m_pipeline.EndPipeline(cmd);
 	}
