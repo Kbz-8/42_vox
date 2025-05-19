@@ -54,7 +54,7 @@ namespace Scop
 
 	void Scene::RemoveActor(Actor& actor) noexcept
 	{
-		auto it = std::find_if(m_actors.begin(), m_actors.end(), [actor](const Actor& lhs) { return actor.GetUUID() == lhs.GetUUID(); });
+		auto it = std::find_if(m_actors.begin(), m_actors.end(), [&actor](const Actor& lhs) { return actor.GetUUID() == lhs.GetUUID(); });
 		if(it == m_actors.end())
 		{
 			Error("Actor not found");
@@ -65,7 +65,7 @@ namespace Scop
 
 	void Scene::RemoveNarrator(Narrator& narrator) noexcept
 	{
-		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [narrator](const Narrator& lhs) { return narrator.GetUUID() == lhs.GetUUID(); });
+		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [&narrator](const Narrator& lhs) { return narrator.GetUUID() == lhs.GetUUID(); });
 		if(it == m_narrators.end())
 		{
 			Error("Narrator not found");
@@ -76,7 +76,7 @@ namespace Scop
 
 	void Scene::RemoveSprite(Sprite& sprite) noexcept
 	{
-		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [sprite](const Sprite& lhs) { return sprite.GetUUID() == lhs.GetUUID(); });
+		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [&sprite](const Sprite& lhs) { return sprite.GetUUID() == lhs.GetUUID(); });
 		if(it == m_sprites.end())
 		{
 			Error("Sprite not found");
