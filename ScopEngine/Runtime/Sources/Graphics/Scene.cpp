@@ -1,4 +1,3 @@
-#include "Graphics/Narrator.h"
 #include <Graphics/Scene.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/RenderCore.h>
@@ -24,37 +23,43 @@ namespace Scop
 
 	Actor& Scene::CreateActor(Model model) noexcept
 	{
-		return m_actors.emplace_back(std::move(model));
+		UUID uuid = UUID();
+		return m_actors.try_emplace(uuid, uuid, std::move(model)).first->second;
 	}
 
 	Actor& Scene::CreateActor(std::string_view name, Model model)
 	{
-		return m_actors.emplace_back(std::move(model));
+		UUID uuid = UUID();
+		return m_actors.try_emplace(uuid, uuid, std::move(model)).first->second;
 	}
 
 	Narrator& Scene::CreateNarrator() noexcept
 	{
-		return m_narrators.emplace_back();
+		UUID uuid = UUID();
+		return m_narrators.try_emplace(uuid, uuid).first->second;
 	}
 
 	Narrator& Scene::CreateNarrator(std::string_view name)
 	{
-		return m_narrators.emplace_back();
+		UUID uuid = UUID();
+		return m_narrators.try_emplace(uuid, uuid).first->second;
 	}
 
 	Sprite& Scene::CreateSprite(std::shared_ptr<Texture> texture) noexcept
 	{
-		return m_sprites.emplace_back(texture);
+		UUID uuid = UUID();
+		return m_sprites.try_emplace(uuid, uuid, texture).first->second;
 	}
 
 	Sprite& Scene::CreateSprite(std::string_view name, std::shared_ptr<Texture> texture)
 	{
-		return m_sprites.emplace_back(texture);
+		UUID uuid = UUID();
+		return m_sprites.try_emplace(uuid, uuid, texture).first->second;
 	}
 
 	void Scene::RemoveActor(Actor& actor) noexcept
 	{
-		auto it = std::find_if(m_actors.begin(), m_actors.end(), [&actor](const Actor& lhs) { return actor.GetUUID() == lhs.GetUUID(); });
+		auto it = m_actors.find(actor.GetUUID());
 		if(it == m_actors.end())
 		{
 			Error("Actor not found");
@@ -65,7 +70,7 @@ namespace Scop
 
 	void Scene::RemoveNarrator(Narrator& narrator) noexcept
 	{
-		auto it = std::find_if(m_narrators.begin(), m_narrators.end(), [&narrator](const Narrator& lhs) { return narrator.GetUUID() == lhs.GetUUID(); });
+		auto it = m_narrators.find(narrator.GetUUID());
 		if(it == m_narrators.end())
 		{
 			Error("Narrator not found");
@@ -76,7 +81,7 @@ namespace Scop
 
 	void Scene::RemoveSprite(Sprite& sprite) noexcept
 	{
-		auto it = std::find_if(m_sprites.begin(), m_sprites.end(), [&sprite](const Sprite& lhs) { return sprite.GetUUID() == lhs.GetUUID(); });
+		auto it = m_sprites.find(sprite.GetUUID());
 		if(it == m_sprites.end())
 		{
 			Error("Sprite not found");
@@ -135,11 +140,11 @@ namespace Scop
 
 	void Scene::Update(Inputs& input, float timestep, float aspect)
 	{
-		for(auto actor : m_actors)
+		for(auto& [_, actor] : m_actors)
 			actor.Update(this, input, timestep);
-		for(auto narrator : m_narrators)
+		for(auto& [_, narrator] : m_narrators)
 			narrator.Update(this, input, timestep);
-		for(auto sprite : m_sprites)
+		for(auto& [_, sprite] : m_sprites)
 			sprite.Update(this, input, timestep);
 		if(m_descriptor.camera)
 			m_descriptor.camera->Update(input, aspect, timestep);

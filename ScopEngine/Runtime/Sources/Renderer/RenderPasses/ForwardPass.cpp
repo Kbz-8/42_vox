@@ -43,7 +43,7 @@ namespace Scop
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();
 		pipeline.BindPipeline(cmd, 0, {});
-		for(const auto& actor : scene.GetActors())
+		for(const auto& [_, actor] : scene.GetActors())
 		{
 			if(!actor.IsVisible())
 				continue;

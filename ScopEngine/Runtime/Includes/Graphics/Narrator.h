@@ -16,8 +16,9 @@ namespace Scop
 
 		public:
 			Narrator() : m_uuid(UUID()) {}
+			Narrator(std::uint64_t uuid) : m_uuid(uuid) {}
 			inline void AttachScript(std::shared_ptr<NarratorScript> script) { p_script = script; }
-			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
+			[[nodiscard]] inline std::uint64_t GetUUID() const noexcept { return m_uuid; }
 			inline ~Narrator()
 			{
 				if(p_script)
@@ -37,5 +38,16 @@ namespace Scop
 	};
 }
 
-#endif
+namespace std
+{
+	template <>
+	struct hash<Scop::Narrator>
+	{
+		std::size_t operator()(const Scop::Narrator& n) const noexcept
+		{
+			return static_cast<std::size_t>(n.GetUUID());
+		}
+	};
+}
 
+#endif

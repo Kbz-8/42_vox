@@ -17,6 +17,7 @@ namespace Scop
 		public:
 			Actor();
 			Actor(Model model);
+			Actor(std::uint64_t uuid, Model model);
 
 			inline void AttachScript(std::shared_ptr<ActorScript> script) { p_script = script; }
 
@@ -32,7 +33,7 @@ namespace Scop
 			[[nodiscard]] inline const Quatf& GetOrientation() const noexcept { return m_orientation; }
 			[[nodiscard]] inline const Model& GetModel() const noexcept { return m_model; }
 			[[nodiscard]] inline Model& GetModelRef() noexcept { return m_model; }
-			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
+			[[nodiscard]] inline std::uint64_t GetUUID() const noexcept { return m_uuid; }
 			[[nodiscard]] inline bool IsVisible() const noexcept { return m_is_visible; }
 
 			~Actor();
@@ -49,6 +50,18 @@ namespace Scop
 			std::shared_ptr<ActorScript> p_script;
 			std::uint64_t m_uuid;
 			bool m_is_visible = true;
+	};
+}
+
+namespace std
+{
+	template <>
+	struct hash<Scop::Actor>
+	{
+		std::size_t operator()(const Scop::Actor& a) const noexcept
+		{
+			return static_cast<std::size_t>(a.GetUUID());
+		}
 	};
 }
 

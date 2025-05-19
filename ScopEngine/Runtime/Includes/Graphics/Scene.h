@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <map>
 
 #include <Utils/NonOwningPtr.h>
 
@@ -66,8 +67,8 @@ namespace Scop
 			void SwitchToParent() const noexcept;
 
 			[[nodiscard]] inline ForwardData& GetForwardData() noexcept { return m_forward; }
-			[[nodiscard]] inline const std::vector<Actor>& GetActors() const noexcept { return m_actors; }
-			[[nodiscard]] inline const std::vector<Sprite>& GetSprites() const noexcept { return m_sprites; }
+			[[nodiscard]] inline const std::map<std::uint64_t, Actor>& GetActors() const noexcept { return m_actors; }
+			[[nodiscard]] inline const std::map<std::uint64_t, Sprite>& GetSprites() const noexcept { return m_sprites; }
 			[[nodiscard]] inline const std::string& GetName() const noexcept { return m_name; }
 			[[nodiscard]] inline GraphicPipeline& GetPipeline() noexcept { return m_pipeline; }
 			[[nodiscard]] inline std::shared_ptr<BaseCamera> GetCamera() const { return m_descriptor.camera; }
@@ -90,9 +91,9 @@ namespace Scop
 			DepthImage m_depth;
 			SceneDescriptor m_descriptor;
 			std::shared_ptr<CubeTexture> p_skybox;
-			std::vector<Actor> m_actors;
-			std::vector<Sprite> m_sprites;
-			std::vector<Narrator> m_narrators;
+			std::map<std::uint64_t, Actor> m_actors;
+			std::map<std::uint64_t, Sprite> m_sprites;
+			std::map<std::uint64_t, Narrator> m_narrators;
 			std::vector<Scene> m_scene_children;
 			std::string m_name;
 			NonOwningPtr<Scene> p_parent;

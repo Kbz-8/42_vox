@@ -85,7 +85,7 @@ namespace Scop
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();
 		m_pipeline.BindPipeline(cmd, 0, {});
-		for(const auto& sprite : scene.GetSprites())
+		for(const auto& [_, sprite] : scene.GetSprites())
 		{
 			SpriteData sprite_data;
 			sprite_data.position = Vec2f{ static_cast<float>(sprite.GetPosition().x), static_cast<float>(sprite.GetPosition().y) };

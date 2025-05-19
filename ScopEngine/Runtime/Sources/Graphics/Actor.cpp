@@ -17,6 +17,12 @@ namespace Scop
 			p_script->OnInit(this);
 	}
 
+	Actor::Actor(std::uint64_t uuid, Model model) : m_model(std::move(model)), m_uuid(uuid)
+	{
+		if(p_script)
+			p_script->OnInit(this);
+	}
+
 	void Actor::Update(NonOwningPtr<Scene> scene, Inputs& input, float delta)
 	{
 		if(p_script)

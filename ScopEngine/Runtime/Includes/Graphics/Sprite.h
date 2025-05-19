@@ -18,6 +18,7 @@ namespace Scop
 
 		public:
 			Sprite(std::shared_ptr<Texture> texture);
+			Sprite(std::uint64_t uuid, std::shared_ptr<Texture> texture);
 
 			inline void AttachScript(std::shared_ptr<SpriteScript> script) { p_script = script; }
 			void Update(NonOwningPtr<class Scene> scene, class Inputs& input, float timestep);
@@ -31,7 +32,7 @@ namespace Scop
 			[[nodiscard]] inline const Vec2f& GetScale() const noexcept { return m_scale; }
 			[[nodiscard]] inline std::shared_ptr<Mesh> GetMesh() const { return p_mesh; }
 			[[nodiscard]] inline std::shared_ptr<Texture> GetTexture() const { return p_texture; }
-			[[nodiscard]] inline std::uint32_t GetUUID() const noexcept { return m_uuid; }
+			[[nodiscard]] inline std::uint64_t GetUUID() const noexcept { return m_uuid; }
 
 			~Sprite();
 
@@ -59,6 +60,18 @@ namespace Scop
 			Vec2ui m_position = Vec2ui{ 0, 0 };
 			Vec2f m_scale = Vec2f{ 1.0f, 1.0f };
 			std::uint64_t m_uuid;
+	};
+}
+
+namespace std
+{
+	template <>
+	struct hash<Scop::Sprite>
+	{
+		std::size_t operator()(const Scop::Sprite& s) const noexcept
+		{
+			return static_cast<std::size_t>(s.GetUUID());
+		}
 	};
 }
 

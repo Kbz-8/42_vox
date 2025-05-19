@@ -17,6 +17,16 @@ namespace Scop
 			p_script->OnInit(this);
 	}
 
+	Sprite::Sprite(std::uint64_t uuid, std::shared_ptr<Texture> texture)
+	{
+		Verify((bool)texture, "Sprite: invalid texture");
+		m_uuid = uuid;
+		p_mesh = CreateQuad(0, 0, texture->GetWidth(), texture->GetHeight());
+		p_texture = texture;
+		if(p_script)
+			p_script->OnInit(this);
+	}
+
 	void Sprite::Update(NonOwningPtr<Scene> scene, Inputs& input, float delta)
 	{
 		if(p_script)
