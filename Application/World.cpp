@@ -65,9 +65,9 @@ void World::UnloadChunks(Scop::Vec2i current_chunk_position)
 {
 	for(auto it = m_chunks.begin(); it != m_chunks.end();)
 	{
-		Scop::Vec3i pos = it->first;
+		Scop::Vec2i pos = it->first;
 		std::uint32_t x_dist = std::abs(pos.x - current_chunk_position.x);
-		std::uint32_t z_dist = std::abs(pos.z - current_chunk_position.y);
+		std::uint32_t z_dist = std::abs(pos.y - current_chunk_position.y);
 		if(RENDER_DISTANCE < x_dist || RENDER_DISTANCE < z_dist)
 		{
 			if(it->second.GetActor())
@@ -92,7 +92,6 @@ void World::GenerateWorld(Scop::Vec2i current_chunk_position)
 				if(!res.first->second.GetActor())
 				{
 					res.first->second.GenerateChunk();
-					res.first->second.GenerateMesh();
 					m_chunks_to_upload.Push(res.first->second);
 				}
 			}
@@ -109,6 +108,7 @@ void World::Upload()
 	for(std::size_t i = 0; i < CHUNKS_UPLOAD_PER_FRAME && !m_chunks_to_upload.IsEmpty(); i++)
 	{
 		auto chunk = m_chunks_to_upload.Pop();
+		chunk.get().GenerateMesh();
 		chunk.get().UploadMesh();
 	}
 	Scop::RenderCore::Get().WaitQueueIdle(KVF_GRAPHICS_QUEUE);
