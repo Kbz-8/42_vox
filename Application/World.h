@@ -9,7 +9,7 @@
 #include <Chunk.h>
 #include <Utils.h>
 
-constexpr std::uint8_t RENDER_DISTANCE = 5;
+constexpr std::uint8_t RENDER_DISTANCE = 10;
 constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 1;
 
 enum class GenerationState: std::uint8_t
@@ -31,8 +31,8 @@ class World
 		~World() = default;
 
 	private:
-		void UnloadChunks(Scop::Vec2i current_chunk_position);
-		void GenerateWorld(Scop::Vec2i current_chunk_position);
+		void UnloadChunks();
+		void GenerateWorld();
 		void Upload();
 
 	private:
@@ -41,6 +41,7 @@ class World
 		std::shared_ptr<Scop::Material> p_block_material;
 		Scop::Scene& m_scene;
 		Scop::Vec2i m_previous_chunk_position;
+		Scop::Vec2i m_current_chunk_position;
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;
 };
 
