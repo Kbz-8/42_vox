@@ -4,7 +4,7 @@
 
 namespace Scop
 {
-	void Image::Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled, std::string_view name)
+	void Image::Init(ImageType type, std::uint32_t width, std::uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, bool is_multisampled, std::string_view name, bool dedicated_alloc)
 	{
 		m_type = type;
 		m_width = width;
@@ -47,8 +47,8 @@ namespace Scop
 		VkMemoryRequirements mem_requirements;
 		RenderCore::Get().vkGetImageMemoryRequirements(RenderCore::Get().GetDevice(), m_image, &mem_requirements);
 
-		m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), true);
-		RenderCore::Get().vkBindImageMemory(RenderCore::Get().GetDevice(), m_image, m_memory.memory, 0);
+		m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), dedicated_alloc);
+		RenderCore::Get().vkBindImageMemory(RenderCore::Get().GetDevice(), m_image, m_memory.memory, m_memory.offset);
 
 		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
 			VkDebugUtilsObjectNameInfoEXT name_info{};

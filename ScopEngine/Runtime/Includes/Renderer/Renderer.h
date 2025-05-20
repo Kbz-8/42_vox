@@ -15,6 +15,8 @@
 
 namespace Scop
 {
+	constexpr std::uint32_t SEMAPHORE_COUNT = 4;
+
 	class Renderer
 	{
 		public:
@@ -41,12 +43,13 @@ namespace Scop
 
 		private:
 			Swapchain m_swapchain;
-			std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> m_image_available_semaphores;
-			std::array<VkSemaphore, MAX_FRAMES_IN_FLIGHT> m_render_finished_semaphores;
+			std::array<VkSemaphore, SEMAPHORE_COUNT> m_image_available_semaphores;
+			std::array<VkSemaphore, SEMAPHORE_COUNT> m_render_finished_semaphores;
 			std::array<VkCommandBuffer, MAX_FRAMES_IN_FLIGHT> m_cmd_buffers;
 			std::array<VkFence, MAX_FRAMES_IN_FLIGHT> m_cmd_fences;
 			NonOwningPtr<Window> p_window;
 			std::uint32_t m_current_frame_index = 0;
+			std::uint32_t m_current_semaphore_index = 0;
 			std::size_t m_polygons_drawn = 0;
 			std::size_t m_drawcalls = 0;
 	};

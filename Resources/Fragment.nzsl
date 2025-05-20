@@ -1,0 +1,56 @@
+[nzsl_version("1.0")]
+module;
+
+struct VertOut
+{
+	[location(0)] color: vec4[f32],
+	[location(1)] uv: vec2[f32],
+	[location(2)] norm: vec4[f32],
+	[location(3)] transformed_norm: vec3[f32],
+	[location(4)] frag_position: vec4[f32],
+	[location(5)] camera_position: vec3[f32],
+	[builtin(position)] pos: vec4[f32]
+}
+
+struct FragmentData
+{
+	dissolve_texture_factor: f32,
+	dissolve_black_white_colors_factor: f32,
+	dissolve_normals_colors_factor: f32,
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+external
+{
+	[set(1), binding(0)] u_albedo: sampler2D[f32],
+	[set(1), binding(1)] u_fragment_data: uniform[FragmentData],
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	if(input.color.a == 0.0)
+		discard;
+
+	const ambient = vec3[f32](0.1, 0.1, 0.1);
+	const directional_color = vec3[f32](5.0, 5.0, 5.0);
+	const specular_strength = 0.5;
+	let directional_vector = normalize(vec3[f32](0.85, 0.8, 0.75));
+
+	let directional: f32 = max(dot(input.transformed_norm.xyz, directional_vector), 0.0);
+
+	let view_dir: vec3[f32] = normalize(input.camera_position - input.frag_position.xyz);
+	let reflect_dir: vec3[f32] = reflect(-directional_vector, input.norm.xyz);
+	let spec: f32 = pow(max(dot(view_dir, reflect_dir), 0.0), 128.0);
+	let specular: vec3[f32] = specular_strength * spec * directional_color;
+
+	let lighting: vec3[f32] = ambient + (directional_color * directional) + specular;
+
+	let output: FragOut;
+	output.color = input.color * u_albedo.Sample(input.uv) * vec4[f32](lighting, 1.0);
+	return output;
+}

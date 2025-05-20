@@ -9,8 +9,8 @@
 #include <Chunk.h>
 #include <Utils.h>
 
-constexpr std::uint8_t RENDER_DISTANCE = 10;
-constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 1;
+constexpr std::uint8_t RENDER_DISTANCE = 12;
+constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 3;
 
 enum class GenerationState: std::uint8_t
 {

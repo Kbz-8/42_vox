@@ -28,7 +28,7 @@ void Chunk::GenerateChunk()
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
 		{
 			// Implement noise here
-			std::uint32_t height = std::min(static_cast<std::uint32_t>(4 + (std::sin(m_position.x) * std::sin(m_position.y)) * 10 + x), CHUNK_SIZE.y);
+			std::uint32_t height = std::abs(std::sin((float)m_offset.x / 20.0f) * std::cos((float)m_offset.y / 20.0f) * 60.0f) + 1;
 			for(std::uint32_t y = 0; y < height; y++)
 				m_data[x][z][y] = 1;
 		}
@@ -37,11 +37,8 @@ void Chunk::GenerateChunk()
 
 void Chunk::GenerateMesh()
 {
-	if(p_actor)
+	if(!m_mesh_data.empty())
 		return;
-
-	m_mesh_data.clear();
-	m_mesh_index_data.clear();
 
 	std::size_t offset = 0;
 
@@ -176,6 +173,8 @@ void Chunk::UploadMesh()
 
 std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 {
+	//if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
+	//	return 1;
 	if(position.x < m_data.size() && position.z < m_data[position.x].size() && position.y < m_data[position.x][position.z].size())
 		return m_data[position.x][position.z][position.y];
 	return 0;

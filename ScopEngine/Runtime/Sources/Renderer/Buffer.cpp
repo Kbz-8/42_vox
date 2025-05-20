@@ -49,8 +49,8 @@ namespace Scop
 		VkMemoryRequirements mem_requirements;
 		RenderCore::Get().vkGetBufferMemoryRequirements(device, m_buffer, &mem_requirements);
 
-		m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), dedicated_alloc);
-		//m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties));
+		//m_memory = RenderCore::Get().GetAllocator().Allocate(size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), dedicated_alloc);
+		m_memory = RenderCore::Get().GetAllocator().Allocate(mem_requirements.size, mem_requirements.alignment, *FindMemoryType(mem_requirements.memoryTypeBits, properties), dedicated_alloc);
 		RenderCore::Get().vkBindBufferMemory(device, m_buffer, m_memory.memory, m_memory.offset);
 
 		#ifdef SCOP_HAS_DEBUG_UTILS_FUNCTIONS
@@ -74,6 +74,8 @@ namespace Scop
 			name_info.pObjectName = m_name.c_str();
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 		#endif
+
+		m_size = size;
 
 		m_is_dedicated_alloc = dedicated_alloc;
 

@@ -26,7 +26,7 @@ namespace Scop
 			[[nodiscard]] inline VkBuffer operator()() const noexcept { return m_buffer; }
 			[[nodiscard]] inline VkBuffer Get() const noexcept { return m_buffer; }
 			[[nodiscard]] inline VkDeviceMemory GetMemory() const noexcept { return m_memory.memory; }
-			[[nodiscard]] inline VkDeviceSize GetSize() const noexcept { return m_memory.size; }
+			[[nodiscard]] inline VkDeviceSize GetSize() const noexcept { return m_size; }
 			[[nodiscard]] inline VkDeviceSize GetOffset() const noexcept { return 0; }
 
 			[[nodiscard]] inline static std::size_t GetBufferCount() noexcept { return s_buffer_count; }
@@ -41,6 +41,7 @@ namespace Scop
 		protected:
 			VkBuffer m_buffer = VK_NULL_HANDLE;
 			MemoryBlock m_memory = NULL_MEMORY_BLOCK;
+			VkDeviceSize m_size = 0;
 
 		private:
 			void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, std::string_view name, bool dedicated_alloc);
@@ -78,7 +79,7 @@ namespace Scop
 			{
 				m_vertex_offset = 0;
 				m_index_offset = vertex_size;
-				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name), true);
+				GPUBuffer::Init(BufferType::LowDynamic, vertex_size + index_size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | additional_flags, std::move(data), std::move(name), false);
 			}
 			void SetVertexData(CPUBuffer data);
 			void SetIndexData(CPUBuffer data);

@@ -11,8 +11,20 @@ int main(int ac, char** av)
 
 	std::shared_ptr<Scop::Scene> splash_scene = SplashScreen();
 
+	Scop::ShaderLayout shader_layout(
+		{
+			{ 1,
+				Scop::ShaderSetLayout({ 
+					{ 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER },
+					{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER }
+				})
+			}
+		}, {}
+	);
+	std::shared_ptr<Scop::Shader> shader = Scop::LoadShaderFromFile(GetExecutablePath().parent_path().parent_path() / "Resources/Fragment.spv", Scop::ShaderType::Fragment, std::move(shader_layout));
+
 	Scop::SceneDescriptor main_scene_desc;
-	main_scene_desc.fragment_shader = Scop::RenderCore::Get().GetDefaultFragmentShader();
+	main_scene_desc.fragment_shader = shader;
 	main_scene_desc.camera = std::make_shared<Scop::FirstPerson3D>(Scop::Vec3f{ 0.0f, 20.0f, 0.0f }, 80.f);
 	main_scene_desc.culling = Scop::CullMode::Front;
 	Scop::Scene& main_scene = splash_scene->AddChildScene("main", std::move(main_scene_desc));

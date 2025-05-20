@@ -11,12 +11,15 @@
 
 namespace Scop
 {
+	constexpr std::size_t SMALL_HEAP_MAX_SIZE = (1024ULL * 1024 * 1024);
+	constexpr std::size_t DEFAULT_LARGE_HEAP_BLOCK_SIZE = (256ULL * 1024 * 1024);
+
 	class DeviceAllocator
 	{
 		public:
 			DeviceAllocator() = default;
 
-			inline void AttachToDevice(VkDevice device, VkPhysicalDevice physical) noexcept { m_device = device; m_physical = physical; }
+			void AttachToDevice(VkDevice device, VkPhysicalDevice physical) noexcept;
 			inline void DetachFromDevice() noexcept { m_chunks.clear(); m_device = VK_NULL_HANDLE; m_physical = VK_NULL_HANDLE; }
 			[[nodiscard]] inline std::size_t GetAllocationsCount() const noexcept { return m_allocations_count; }
 
@@ -26,7 +29,11 @@ namespace Scop
 			~DeviceAllocator() = default;
 
 		private:
+			VkDeviceSize CalcPreferredChunkSize(std::uint32_t mem_type_index);
+
+		private:
 			std::vector<std::unique_ptr<MemoryChunk>> m_chunks;
+			VkPhysicalDeviceMemoryProperties m_mem_props;
 			VkDevice m_device = VK_NULL_HANDLE;
 			VkPhysicalDevice m_physical = VK_NULL_HANDLE;
 			std::size_t m_allocations_count = 0;

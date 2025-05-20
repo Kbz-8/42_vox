@@ -24,6 +24,7 @@ namespace Scop
 			if(RenderCore::Get().vkMapMemory(m_device, m_memory, 0, VK_WHOLE_SIZE, 0, &p_map) != VK_SUCCESS)
 				FatalError("Vulkan: failed to map a host visible chunk");
 		}
+
 		MemoryBlock& block = m_blocks.emplace_back();
 		block.memory = m_memory;
 		block.offset = 0;
@@ -37,7 +38,7 @@ namespace Scop
 		{
 			if(!m_blocks[i].free || m_blocks[i].size < size)
 				continue;
-			VkDeviceSize offset_displacement = (m_blocks[i].offset % alignment > 0) ? alignment - m_blocks[i].offset % alignment : 0;
+			VkDeviceSize offset_displacement = (m_blocks[i].offset % alignment != 0) ? alignment - m_blocks[i].offset % alignment : 0;
 			VkDeviceSize old_size_available = m_blocks[i].size - offset_displacement;
 
 			if(size + offset_displacement <= m_blocks[i].size)
@@ -51,7 +52,7 @@ namespace Scop
 
 				MemoryBlock new_block;
 				new_block.memory = m_memory;
-				new_block.offset = m_blocks[i].offset + size;
+				new_block.offset = m_blocks[i].offset + m_blocks[i].size;
 				new_block.size = old_size_available - size;
 				new_block.free = true;
 
@@ -76,9 +77,9 @@ namespace Scop
 			end = true;
 			for(auto it = m_blocks.begin(); it != m_blocks.end(); ++it)
 			{
-				if(it->free && (it + 1)->free)
+				if(it->free && it + 1 != m_blocks.end() && (it + 1)->free)
 				{
-					it->size = (it + 1)->offset + (it + 1)->size - it->offset;
+					it->size += (it + 1)->size;
 					m_blocks.erase(it + 1);
 					end = false;
 					break;
