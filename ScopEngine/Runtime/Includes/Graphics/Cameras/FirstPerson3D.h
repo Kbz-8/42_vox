@@ -16,6 +16,10 @@ namespace Scop
 
 			[[nodiscard]] inline constexpr std::string GetCameraType() override { return "FirstPerson3D"; }
 			[[nodiscard]] const Vec3f& GetPosition() const noexcept override { return m_position; }
+			[[nodiscard]] const Vec3f& GetUp() const noexcept { return m_up; }
+			[[nodiscard]] const Vec3f& GetLeft() const noexcept { return m_left; }
+			[[nodiscard]] const Vec3f& GetTarget() const noexcept { return m_target; }
+			[[nodiscard]] const Vec3f& GetDirection() const noexcept { return m_direction; }
 
 			~FirstPerson3D() = default;
 

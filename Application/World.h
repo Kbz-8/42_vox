@@ -9,7 +9,7 @@
 #include <Chunk.h>
 #include <Utils.h>
 
-constexpr std::uint8_t RENDER_DISTANCE = 10;
+constexpr std::uint8_t RENDER_DISTANCE = 5;
 constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 1;
 
 enum class GenerationState: std::uint8_t

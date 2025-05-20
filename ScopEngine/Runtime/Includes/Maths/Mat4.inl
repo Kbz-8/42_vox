@@ -34,6 +34,22 @@ namespace Scop
 	{}
 
 	template<typename T>
+	constexpr Mat4<T>::Mat4(const T& col_1, const T& col_2, const T& col_3, const T& col_4) :
+		m11(col_1), m12(col_2), m13(col_3), m14(col_4),
+		m21(col_1), m22(col_2), m23(col_3), m24(col_4),
+		m31(col_1), m32(col_2), m33(col_3), m34(col_4),
+		m41(col_1), m42(col_2), m43(col_3), m44(col_4)
+	{}
+
+	template<typename T>
+	constexpr Mat4<T>::Mat4(const Vec4<T>& col_1, const Vec4<T>& col_2, const Vec4<T>& col_3, const Vec4<T>& col_4) :
+		m11(col_1.x), m12(col_2.x), m13(col_3.x), m14(col_4.x),
+		m21(col_1.y), m22(col_2.y), m23(col_3.y), m24(col_4.y),
+		m31(col_1.z), m32(col_2.z), m33(col_3.z), m34(col_4.z),
+		m41(col_1.w), m42(col_2.w), m43(col_3.w), m44(col_4.w)
+	{}
+
+	template<typename T>
 	constexpr Mat4<T>& Mat4<T>::ApplyRotation(const Quat<T>& rotation)
 	{
 		return Concatenate(Mat4<T>::Rotate(rotation));

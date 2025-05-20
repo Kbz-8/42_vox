@@ -14,27 +14,40 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
+		static bool generate = true;
+		static bool debounce = false;
+
 		Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
 		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
 		std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
 		Scop::Vec2i current_chunk_position{ x_chunk, z_chunk };
 
-		if(m_generation_status != GenerationState::Ready || current_chunk_position != m_previous_chunk_position)
+		if(input.IsKeyPressed(SDL_SCANCODE_G))
+			debounce = true;
+		else if(debounce)
 		{
-			if(m_generation_status == GenerationState::Ready)
-			{
-				UnloadChunks(current_chunk_position);
-				auto _ = std::async(std::launch::async, &World::GenerateWorld, this, current_chunk_position);
-				m_generation_status = GenerationState::Working;
-			}
-			else if(m_generation_status == GenerationState::Finished)
-			{
-				m_generation_status = GenerationState::Ready;
-				m_previous_chunk_position = current_chunk_position;
-			}
+			generate = !generate;
+			debounce = false;
 		}
-		if(m_generation_status != GenerationState::Working)
+
+		if(generate)
+		{
+			if(m_generation_status != GenerationState::Ready || current_chunk_position != m_previous_chunk_position)
+			{
+				if(m_generation_status == GenerationState::Ready)
+				{
+					UnloadChunks(current_chunk_position);
+					auto _ = std::async(std::launch::async, &World::GenerateWorld, this, current_chunk_position);
+					m_generation_status = GenerationState::Working;
+				}
+				else if(m_generation_status == GenerationState::Finished)
+				{
+					m_generation_status = GenerationState::Ready;
+					m_previous_chunk_position = current_chunk_position;
+				}
+			}
 			Upload();
+		}
 	};
 
 	m_scene.CreateNarrator().AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
@@ -53,8 +66,8 @@ void World::UnloadChunks(Scop::Vec2i current_chunk_position)
 	for(auto it = m_chunks.begin(); it != m_chunks.end();)
 	{
 		Scop::Vec3i pos = it->first;
-		float x_dist = std::abs(pos.x - current_chunk_position.x);
-		float z_dist = std::abs(pos.z - current_chunk_position.y);
+		std::uint32_t x_dist = std::abs(pos.x - current_chunk_position.x);
+		std::uint32_t z_dist = std::abs(pos.z - current_chunk_position.y);
 		if(RENDER_DISTANCE < x_dist || RENDER_DISTANCE < z_dist)
 		{
 			if(it->second.GetActor())
@@ -76,9 +89,12 @@ void World::GenerateWorld(Scop::Vec2i current_chunk_position)
 			auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 			if(res.second)
 			{
-				res.first->second.GenerateChunk();
 				if(!res.first->second.GetActor())
+				{
+					res.first->second.GenerateChunk();
+					res.first->second.GenerateMesh();
 					m_chunks_to_upload.Push(res.first->second);
+				}
 			}
 		}
 	}
@@ -93,7 +109,6 @@ void World::Upload()
 	for(std::size_t i = 0; i < CHUNKS_UPLOAD_PER_FRAME && !m_chunks_to_upload.IsEmpty(); i++)
 	{
 		auto chunk = m_chunks_to_upload.Pop();
-		chunk.get().GenerateMesh();
 		chunk.get().UploadMesh();
 	}
 	Scop::RenderCore::Get().WaitQueueIdle(KVF_GRAPHICS_QUEUE);

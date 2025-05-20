@@ -14,7 +14,7 @@ int main(int ac, char** av)
 	Scop::SceneDescriptor main_scene_desc;
 	main_scene_desc.fragment_shader = Scop::RenderCore::Get().GetDefaultFragmentShader();
 	main_scene_desc.camera = std::make_shared<Scop::FirstPerson3D>(Scop::Vec3f{ 0.0f, 20.0f, 0.0f }, 80.f);
-	main_scene_desc.culling = Scop::CullMode::None;
+	main_scene_desc.culling = Scop::CullMode::Front;
 	Scop::Scene& main_scene = splash_scene->AddChildScene("main", std::move(main_scene_desc));
 
 	Scop::Vec2ui32 skybox_size;

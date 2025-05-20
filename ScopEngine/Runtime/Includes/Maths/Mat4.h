@@ -27,6 +27,8 @@ namespace Scop
 						T r21, T r22, T r23, T r24,
 						T r31, T r32, T r33, T r34,
 						T r41, T r42, T r43, T r44);
+		constexpr Mat4(const T& col_1, const T& col_2, const T& col_3, const T& col_4);
+		constexpr Mat4(const Vec4<T>& col_1, const Vec4<T>& col_2, const Vec4<T>& col_3, const Vec4<T>& col_4);
 		constexpr Mat4(const T matrix[16]);
 		constexpr Mat4(const Mat4&) = default;
 		constexpr Mat4(Mat4&&) = default;
