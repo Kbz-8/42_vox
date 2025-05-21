@@ -20,11 +20,12 @@ namespace Scop
 
 	enum class Event
 	{
-		SceneHasChangedEventCode = 55,
-		ResizeEventCode = 56,
-		FrameBeginEventCode = 57,
-		FatalErrorEventCode = 168,
-		QuitEventCode = 168,
+		SceneHasChangedEventCode,
+		ResizeEventCode,
+		FrameBeginEventCode,
+		FatalErrorEventCode,
+		QuitEventCode,
+		MemoryChunkAllocationFailed,
 
 		EndEnum
 	};

@@ -173,8 +173,8 @@ void Chunk::UploadMesh()
 
 std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 {
-	//if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
-	//	return 1;
+	if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
+		return 1;
 	if(position.x < m_data.size() && position.z < m_data[position.x].size() && position.y < m_data[position.x][position.z].size())
 		return m_data[position.x][position.z][position.y];
 	return 0;

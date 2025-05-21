@@ -14,6 +14,25 @@
 
 namespace Scop
 {
+	std::string HumanSize(uint64_t bytes)
+	{
+		std::string_view suffix[] = { "B", "KB", "MB", "GB", "TB" };
+		std::size_t length = sizeof(suffix) / sizeof(suffix[0]);
+
+		int i = 0;
+		double dbl_bytes = bytes;
+
+		if(bytes > 1024)
+		{
+			for(i = 0; (bytes / 1024) > 0 && i < length-1; i++, bytes /= 1024)
+				dbl_bytes = bytes / 1024.0;
+		}
+
+		std::string output(256, 0);
+		std::sprintf(output.data(), "%.02lf %s", dbl_bytes, suffix[i].data());
+		return output;
+	}
+
 	ImGuiRenderer::ImGuiRenderer(NonOwningPtr<Renderer> renderer) : p_renderer(renderer)
 	{}
 
@@ -141,9 +160,13 @@ namespace Scop
 			ImGui::Text("Swapchain images count %ld", p_renderer->GetSwapchain().GetSwapchainImages().size());
 			ImGui::Text("Drawcalls %ld", p_renderer->GetDrawCallsCounterRef());
 			ImGui::Text("Polygon drawn %ld", p_renderer->GetPolygonDrawnCounterRef());
+			ImGui::Separator();
+			ImGui::Text("VRAM usage %s", HumanSize(RenderCore::Get().GetAllocator().GetVramUsage()).c_str());
+			ImGui::Text("Host visible usage %s", HumanSize(RenderCore::Get().GetAllocator().GetVramHostVisibleUsage()).c_str());
 			ImGui::Text("Allocations count %ld / %u", RenderCore::Get().GetAllocator().GetAllocationsCount(), props.limits.maxMemoryAllocationCount);
 			ImGui::Text("Buffer count %ld", GPUBuffer::GetBufferCount());
 			ImGui::Text("Image count %ld", Image::GetImageCount());
+			ImGui::Separator();
 			ImGui::Text("Window dimensions: %ux%u", p_renderer->GetWindow()->GetWidth(), p_renderer->GetWindow()->GetHeight());
 		}
 		ImGui::End();

@@ -1,12 +1,21 @@
 #include <Renderer/Memory/Chunk.h>
 #include <Renderer/RenderCore.h>
+#include <Core/EventBus.h>
 #include <Core/Logs.h>
 
 #include <algorithm>
 
 namespace Scop
 {
-	MemoryChunk::MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index, bool is_dedicated)
+	namespace Internal
+	{
+		struct MemoryChunkAllocFailedEvent : public EventBase
+		{
+			Event What() const override { return Event::MemoryChunkAllocationFailed; }
+		};
+	}
+
+	MemoryChunk::MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index, bool is_dedicated, std::uint32_t& vram_usage, std::uint32_t& vram_host_visible_usage)
 		: m_device(device), m_physical(physical), m_size(size), m_memory_type_index(memory_type_index), m_is_dedicated(is_dedicated)
 	{
 		Verify(device != VK_NULL_HANDLE, "Memory Chunk : invalid device");
@@ -15,7 +24,10 @@ namespace Scop
 		alloc_info.allocationSize = size;
 		alloc_info.memoryTypeIndex = m_memory_type_index;
 		if(RenderCore::Get().vkAllocateMemory(m_device, &alloc_info, nullptr, &m_memory) != VK_SUCCESS)
-			FatalError("Vulkan: failed to allocate memory for a chunk");
+		{
+			EventBus::Send("__ScopDeviceAllocator", Internal::MemoryChunkAllocFailedEvent{});
+			return;
+		}
 
 		VkPhysicalDeviceMemoryProperties properties;
 		RenderCore::Get().vkGetPhysicalDeviceMemoryProperties(m_physical, &properties);
@@ -23,7 +35,10 @@ namespace Scop
 		{
 			if(RenderCore::Get().vkMapMemory(m_device, m_memory, 0, VK_WHOLE_SIZE, 0, &p_map) != VK_SUCCESS)
 				FatalError("Vulkan: failed to map a host visible chunk");
+			vram_host_visible_usage += size;
 		}
+		else
+			vram_usage += size;
 
 		MemoryBlock& block = m_blocks.emplace_back();
 		block.memory = m_memory;

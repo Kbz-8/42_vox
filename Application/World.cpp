@@ -88,6 +88,8 @@ void World::GenerateWorld()
 			std::this_thread::sleep_for(16ms);
 			continue;
 		}
+		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
+
 		for(std::int32_t x = m_current_chunk_position.x - RENDER_DISTANCE; x <= m_current_chunk_position.x + RENDER_DISTANCE; x++)
 		{
 			for(std::int32_t z = m_current_chunk_position.y - RENDER_DISTANCE; z <= m_current_chunk_position.y + RENDER_DISTANCE; z++)
@@ -98,11 +100,17 @@ void World::GenerateWorld()
 					if(!res.first->second.GetActor())
 					{
 						res.first->second.GenerateChunk();
-						res.first->second.GenerateMesh();
-						m_chunks_to_upload.Push(std::ref(res.first->second));
+						mesh_generation_queue.push(std::ref(res.first->second));
 					}
 				}
 			}
+		}
+		while(!mesh_generation_queue.empty())
+		{
+			auto chunk = mesh_generation_queue.front();
+			mesh_generation_queue.pop();
+			chunk.get().GenerateMesh();
+			m_chunks_to_upload.Push(chunk);
 		}
 		m_generation_status = GenerationState::Finished;
 	}

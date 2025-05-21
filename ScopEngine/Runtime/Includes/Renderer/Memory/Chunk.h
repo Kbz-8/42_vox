@@ -12,13 +12,15 @@ namespace Scop
 	class MemoryChunk
 	{
 		public:
-			MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index, bool is_dedicated);
+			MemoryChunk(VkDevice device, VkPhysicalDevice physical, VkDeviceSize size, std::int32_t memory_type_index, bool is_dedicated, std::uint32_t& vram_usage, std::uint32_t& vram_host_visible_usage);
 
 			[[nodiscard]] std::optional<MemoryBlock> Allocate(VkDeviceSize size, VkDeviceSize alignment);
 			void Deallocate(const MemoryBlock& block);
 			[[nodiscard]] inline bool Has(const MemoryBlock& block) const noexcept { return block.memory == m_memory; }
 			[[nodiscard]] inline std::int32_t GetMemoryTypeIndex() const noexcept { return m_memory_type_index; }
 			[[nodiscard]] inline bool IsDedicated() const noexcept { return m_is_dedicated; }
+			[[nodiscard]] inline void* GetMap() const noexcept { return p_map; }
+			[[nodiscard]] inline VkDeviceSize GetSize() const noexcept { return m_size; }
 
 			~MemoryChunk();
 

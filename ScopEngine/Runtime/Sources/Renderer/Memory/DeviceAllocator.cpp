@@ -2,12 +2,13 @@
 #include <Renderer/RenderCore.h>
 #include <Maths/Constants.h>
 #include <Core/Logs.h>
+#include <Core/EventBus.h>
 
 #include <optional>
 
 namespace Scop
 {
-	#define AlignUp(val, alignment) (val + alignment - 1) & ~(alignment - 1)
+	#define AlignUp(val, alignment) ((val + alignment - 1) & ~(alignment - 1))
 
 	void DeviceAllocator::AttachToDevice(VkDevice device, VkPhysicalDevice physical) noexcept
 	{
@@ -15,6 +16,13 @@ namespace Scop
 		m_physical = physical;
 
 		RenderCore::Get().vkGetPhysicalDeviceMemoryProperties(physical, &m_mem_props);
+
+		std::function<void(const EventBase&)> functor = [this](const EventBase& event)
+		{
+			if(event.What() == Event::MemoryChunkAllocationFailed)
+				m_last_chunk_creation_failed = true;
+		};
+		EventBus::RegisterListener({ functor, "__ScopDeviceAllocator" });
 	}
 
 	[[nodiscard]] MemoryBlock DeviceAllocator::Allocate(VkDeviceSize size, VkDeviceSize alignment, std::int32_t memory_type_index, bool dedicated_chunk)
@@ -34,8 +42,33 @@ namespace Scop
 				}
 			}
 		}
-		VkDeviceSize chunk_size = CalcPreferredChunkSize(memory_type_index);
-		m_chunks.emplace_back(std::make_unique<MemoryChunk>(m_device, m_physical, chunk_size, memory_type_index, dedicated_chunk));
+		VkDeviceSize chunk_size = dedicated_chunk ? size + alignment : CalcPreferredChunkSize(memory_type_index);
+		if(chunk_size < size + alignment)
+			chunk_size = size + alignment;
+		m_chunks.emplace_back(std::make_unique<MemoryChunk>(m_device, m_physical, chunk_size, memory_type_index, dedicated_chunk, m_vram_usage, m_vram_host_visible_usage));
+
+		if(m_last_chunk_creation_failed && !dedicated_chunk)
+		{
+			// Allocation of this size failed? Try 1/2, 1/4, 1/8 of preferred chunk size.
+			std::uint32_t new_block_size_shift = 0;
+			while(m_last_chunk_creation_failed && new_block_size_shift < NEW_BLOCK_SIZE_SHIFT_MAX)
+			{
+				m_last_chunk_creation_failed = false;
+				m_chunks.pop_back();
+				chunk_size /= 2;
+				if(chunk_size < size + alignment)
+				{
+					m_last_chunk_creation_failed = true;
+					break;
+				}
+				m_chunks.emplace_back(std::make_unique<MemoryChunk>(m_device, m_physical, chunk_size, memory_type_index, false, m_vram_usage, m_vram_host_visible_usage));
+			}
+		}
+
+		// If we could not recover from allocation failure
+		if(m_last_chunk_creation_failed)
+			FatalError("Device Allocator: could not allocate a memory chunk");
+
 		std::optional<MemoryBlock> block = m_chunks.back()->Allocate(size, alignment);
 		m_allocations_count++;
 		if(block.has_value())
@@ -56,6 +89,10 @@ namespace Scop
 				(*it)->Deallocate(block);
 				if((*it)->IsDedicated())
 				{
+					if((*it)->GetMap() != nullptr) // If it is host visible
+						m_vram_host_visible_usage -= (*it)->GetSize();
+					else
+						m_vram_usage -= (*it)->GetSize();
 					m_chunks.erase(it);
 					m_allocations_count--;
 				}
