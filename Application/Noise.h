@@ -3,12 +3,14 @@
 
 #include <ScopMaths.h>
 
+#include <Chunk.h>
+
 class Noise
 {
 	public:
 		Noise() = default;
 
-		[[nodiscard]] std::uint32_t GetHeight(Scop::Vec2i pos);
+		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
 
 		~Noise() = default;
 

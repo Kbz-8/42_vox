@@ -8,6 +8,7 @@
 
 constexpr Scop::Vec3ui CHUNK_SIZE = Scop::Vec3ui{ 32, 256, 32 };
 constexpr Scop::Vec3ui CHUNK_SIZE_HALF = CHUNK_SIZE / 2 ;
+constexpr std::uint32_t CHUNK_VOLUME = CHUNK_SIZE.x * CHUNK_SIZE.y * CHUNK_SIZE.z;
 
 class Chunk
 {
@@ -26,7 +27,7 @@ class Chunk
 	private:
 		std::vector<Scop::Vertex> m_mesh_data;
 		std::vector<std::uint32_t> m_mesh_index_data;
-		std::vector<std::vector<std::vector<std::uint32_t>>> m_data;
+		std::array<std::array<std::uint32_t, CHUNK_SIZE.y>, CHUNK_SIZE.x * CHUNK_SIZE.z> m_data;
 		Scop::Vec2i m_offset; // In chunks
 		Scop::Vec2i m_position; // In blocks
 		class World& m_world;
