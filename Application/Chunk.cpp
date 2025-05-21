@@ -42,11 +42,11 @@ void Chunk::GenerateMesh()
 
 	std::size_t offset = 0;
 
-	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
+	for(std::int32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
-		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
+		for(std::int32_t z = 0; z < CHUNK_SIZE.z; z++)
 		{
-			for(std::uint32_t y = 0; y < CHUNK_SIZE.y; y++)
+			for(std::int32_t y = 0; y < CHUNK_SIZE.y; y++)
 			{
 				if(!GetBlock(Scop::Vec3i(x, y, z)))
 					continue;
@@ -68,7 +68,7 @@ void Chunk::GenerateMesh()
 					offset += 4;
 				}
 
-				if(!GetBlock(Scop::Vec3i(x, y, static_cast<std::int32_t>(z) - 1)))
+				if(!GetBlock(Scop::Vec3i(x, y, z - 1)))
 				{
 					m_mesh_index_data.push_back(offset + 2);
 					m_mesh_index_data.push_back(offset + 3);
@@ -102,7 +102,7 @@ void Chunk::GenerateMesh()
 					offset += 4;
 				}
 
-				if(!GetBlock(Scop::Vec3i(x, static_cast<std::int32_t>(y) - 1, z)))
+				if(!GetBlock(Scop::Vec3i(x, y - 1, z)))
 				{
 					m_mesh_index_data.push_back(offset + 3);
 					m_mesh_index_data.push_back(offset + 1);
@@ -136,7 +136,7 @@ void Chunk::GenerateMesh()
 					offset += 4;
 				}
 
-				if(!GetBlock(Scop::Vec3i(static_cast<std::int32_t>(x) - 1, y, z)))
+				if(!GetBlock(Scop::Vec3i(x - 1, y, z)))
 				{
 					m_mesh_index_data.push_back(offset);
 					m_mesh_index_data.push_back(offset + 2);
@@ -173,8 +173,28 @@ void Chunk::UploadMesh()
 
 std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 {
-	if(position.x < 0 || position.x >= m_data.size() || position.z < 0 || position.z >= m_data[position.x >= m_data.size() ? m_data.size() - 1 : position.x].size() || position.y < 0)
+	if(position.y < 0 || position.y > CHUNK_SIZE.y) // No chunk under or above
 		return 1;
+	if(position.x < 0)
+	{
+		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x - 1, m_offset.y });
+		return neighbour ? neighbour->GetBlock(Scop::Vec3i(CHUNK_SIZE.x - 1, position.y, position.z)) : 1;
+	}
+	if(position.x >= CHUNK_SIZE.x)
+	{
+		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x + 1, m_offset.y });
+		return neighbour ? neighbour->GetBlock(Scop::Vec3i(0, position.y, position.z)) : 1;
+	}
+	if(position.z < 0)
+	{
+		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y - 1 });
+		return neighbour ? neighbour->GetBlock(Scop::Vec3i(position.x, position.y, CHUNK_SIZE.x - 1)) : 1;
+	}
+	if(position.z >= CHUNK_SIZE.z)
+	{
+		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y + 1 });
+		return neighbour ? neighbour->GetBlock(Scop::Vec3i(position.x, position.y, 0)) : 1;
+	}
 	if(position.x < m_data.size() && position.z < m_data[position.x].size() && position.y < m_data[position.x][position.z].size())
 		return m_data[position.x][position.z][position.y];
 	return 0;
