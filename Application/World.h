@@ -8,6 +8,7 @@
 
 #include <Chunk.h>
 #include <Utils.h>
+#include <Noise.h>
 
 constexpr std::uint8_t RENDER_DISTANCE = 12;
 constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 3;
@@ -27,6 +28,7 @@ class World
 		[[nodiscard]] inline Scop::Scene& GetScene() noexcept { return m_scene; }
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }
 		[[nodiscard]] Scop::NonOwningPtr<Chunk> GetChunk(Scop::Vec2i position);
+		[[nodiscard]] Noise& GetNoiseGenerator() noexcept { return m_noise; }
 
 		~World() = default;
 
@@ -36,6 +38,7 @@ class World
 		void Upload();
 
 	private:
+		Noise m_noise;
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
 		ThreadSafeQueue<std::reference_wrapper<Chunk>> m_chunks_to_upload;
 		std::shared_ptr<Scop::Material> p_block_material;

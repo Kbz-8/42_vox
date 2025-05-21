@@ -27,9 +27,8 @@ void Chunk::GenerateChunk()
 	{
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
 		{
-			// Implement noise here
-			std::uint32_t height = std::abs(std::sin((float)m_offset.x / 20.0f) * std::cos((float)m_offset.y / 20.0f) * 60.0f) + 1;
-			for(std::uint32_t y = 0; y < height; y++)
+			std::uint32_t height = m_world.GetNoiseGenerator().GetHeight(m_position + Scop::Vec2i(x, z));
+			for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
 				m_data[x][z][y] = 1;
 		}
 	}
