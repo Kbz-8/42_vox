@@ -5,6 +5,16 @@
 
 #include <ScopGraphics.h>
 
+enum class BlockType : std::uint32_t
+{
+	Air = 0,
+	Dirt,
+	Stone,
+
+	EndEnum
+};
+constexpr std::size_t BlocksCount = static_cast<std::size_t>(BlockType::EndEnum);
+
 static const std::vector<Scop::Vertex> BLOCK_MESH = {
 	//Front face
 	Scop::Vertex{ Scop::Vec4f{ 0.0f, 0.0f, 1.0f, 1.0f }, Scop::Vec4f{  0.0f,  0.0f,  1.0f, 1.0f }, Scop::Vec2f{ 0.0f, 0.0f } },

@@ -9,7 +9,7 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 {
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
-	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "dirt.bmp", map_size), map_size.x, map_size.y);
+	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "atlas.bmp", map_size), map_size.x, map_size.y);
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
 	std::thread(&World::GenerateWorld, this).detach();
