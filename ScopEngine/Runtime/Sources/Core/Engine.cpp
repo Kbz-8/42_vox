@@ -109,7 +109,8 @@ namespace Scop
 	ScopEngine::~ScopEngine()
 	{
 		RenderCore::Get().WaitDeviceIdle();
-		m_main_scene->Destroy();
+		p_main_scene->Destroy();
+		p_main_scene.reset();
 		m_window.Destroy();
 		#ifdef DEBUG
 			m_imgui.Destroy();

@@ -2,16 +2,16 @@
 #include <ScopGraphics.h>
 #include <thread>
 
-std::shared_ptr<Scop::Scene> SplashScreen()
+Scop::Scene& SplashScreen()
 {
 	Scop::SceneDescriptor scene_desc;
 	scene_desc.fragment_shader = Scop::RenderCore::Get().GetDefaultFragmentShader();
 	scene_desc.render_3D_enabled = false;
 	scene_desc.render_skybox_enabled = false;
-	std::shared_ptr<Scop::Scene> scene = std::make_shared<Scop::Scene>("splash", std::move(scene_desc));
+	Scop::Scene& scene = Scop::ScopEngine::Get().CreateMainScene("splash", std::move(scene_desc));
 
 	Scop::Vec2ui32 splash_size;
-	Scop::Sprite& splash = scene->CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(Scop::ScopEngine::Get().GetAssetsPath() / "Images/splashscreen.bmp", splash_size), splash_size.x, splash_size.y));
+	Scop::Sprite& splash = scene.CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(Scop::ScopEngine::Get().GetAssetsPath() / "Images/splashscreen.bmp", splash_size), splash_size.x, splash_size.y));
 	splash.SetPosition(Scop::Vec2ui{ Scop::ScopEngine::Get().GetWindow().GetWidth() / 2 - splash_size.x / 2, Scop::ScopEngine::Get().GetWindow().GetHeight() / 2 - splash_size.y / 2 });
 
 	auto splash_update = [splash_size](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)

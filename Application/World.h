@@ -17,6 +17,7 @@ enum class GenerationState: std::uint8_t
 {
 	Ready,
 	Working,
+	Quitting,
 	Finished,
 };
 
@@ -24,6 +25,8 @@ class World
 {
 	public:
 		World(Scop::Scene& scene);
+
+		void Quit() noexcept;
 
 		[[nodiscard]] inline Scop::Scene& GetScene() noexcept { return m_scene; }
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }

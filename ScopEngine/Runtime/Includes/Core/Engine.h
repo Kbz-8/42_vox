@@ -31,8 +31,8 @@ namespace Scop
 			[[nodiscard]] inline const Window& GetWindow() const noexcept { return m_window; }
 			[[nodiscard]] inline std::filesystem::path GetAssetsPath() const { return m_assets_path; }
 
-			inline void RegisterMainScene(NonOwningPtr<Scene> scene) noexcept { m_main_scene = scene; p_current_scene = m_main_scene; }
-			inline NonOwningPtr<Scene> GetRootScene() const noexcept { return m_main_scene; }
+			inline Scene& CreateMainScene(std::string_view name, SceneDescriptor desc) noexcept { p_main_scene = std::make_unique<Scene>(name, std::move(desc)); p_current_scene = p_main_scene.get(); return *p_main_scene; }
+			inline NonOwningPtr<Scene> GetRootScene() const noexcept { return p_main_scene.get(); }
 
 			constexpr void Quit() noexcept { m_running = false; }
 
@@ -54,10 +54,10 @@ namespace Scop
 			#endif
 			CommandLineInterface m_cli;
 			Window m_window;
-			NonOwningPtr<Scene> m_main_scene;
 			SceneRenderer m_scene_renderer;
 			std::filesystem::path m_assets_path;
 			std::unique_ptr<RenderCore> p_renderer_core;
+			std::unique_ptr<Scene> p_main_scene;
 			NonOwningPtr<Scene> p_current_scene;
 			bool m_running = true;
 			bool m_scene_changed = false;

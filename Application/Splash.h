@@ -3,6 +3,6 @@
 
 #include <ScopGraphics.h>
 
-std::shared_ptr<Scop::Scene> SplashScreen();
+Scop::Scene& SplashScreen();
 
 #endif

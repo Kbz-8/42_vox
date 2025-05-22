@@ -52,6 +52,16 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 	m_scene.CreateNarrator().AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
 }
 
+void World::Quit() noexcept
+{
+	m_generation_status = GenerationState::Quitting;
+	while(m_generation_status != GenerationState::Finished)
+	{
+		using namespace std::chrono_literals;
+		std::this_thread::sleep_for(16ms);
+	}
+}
+
 [[nodiscard]] Scop::NonOwningPtr<Chunk> World::GetChunk(Scop::Vec2i position)
 {
 	auto it = m_chunks.find(position);
@@ -78,12 +88,15 @@ void World::UnloadChunks()
 	}
 }
 
+#define QUIT_CHECK() if(m_generation_status == GenerationState::Quitting) goto quit
 void World::GenerateWorld()
 {
 	for(;;)
 	{
+		QUIT_CHECK();
 		if(m_generation_status != GenerationState::Working)
 		{
+			QUIT_CHECK();
 			using namespace std::chrono_literals;
 			std::this_thread::sleep_for(16ms);
 			continue;
@@ -94,6 +107,7 @@ void World::GenerateWorld()
 		{
 			for(std::int32_t z = m_current_chunk_position.y - RENDER_DISTANCE; z <= m_current_chunk_position.y + RENDER_DISTANCE; z++)
 			{
+				QUIT_CHECK();
 				auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 				if(res.second)
 				{
@@ -107,6 +121,7 @@ void World::GenerateWorld()
 		}
 		while(!mesh_generation_queue.empty())
 		{
+			QUIT_CHECK();
 			auto chunk = mesh_generation_queue.front();
 			mesh_generation_queue.pop();
 			chunk.get().GenerateMesh();
@@ -114,6 +129,9 @@ void World::GenerateWorld()
 		}
 		m_generation_status = GenerationState::Finished;
 	}
+
+quit:
+	m_generation_status = GenerationState::Finished;
 }
 
 void World::Upload()
