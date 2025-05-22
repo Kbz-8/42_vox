@@ -117,6 +117,7 @@ namespace Scop
 		#endif
 		m_scene_renderer.Destroy();
 		m_renderer.Destroy();
+		Model::s_default_material.reset();
 		p_renderer_core.reset();
 		SDL_Quit();
 		Message("Successfully executed !");

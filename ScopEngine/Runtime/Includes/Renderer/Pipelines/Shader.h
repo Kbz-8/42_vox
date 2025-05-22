@@ -74,6 +74,17 @@ namespace Scop
 	};
 
 	std::shared_ptr<Shader> LoadShaderFromFile(const std::filesystem::path& filepath, ShaderType type, ShaderLayout layout);
+
+	static const Scop::ShaderLayout DefaultShaderLayout(
+		{
+			{ 1,
+				Scop::ShaderSetLayout({ 
+					{ 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER },
+					{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER }
+				})
+			}
+		}, {}
+	);
 }
 
 #endif

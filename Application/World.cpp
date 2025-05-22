@@ -52,7 +52,7 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 	m_scene.CreateNarrator().AttachScript(std::make_shared<Scop::NativeNarratorScript>(std::function<void()>{}, narrator_update, std::function<void()>{}));
 }
 
-void World::Quit() noexcept
+World::~World()
 {
 	m_generation_status = GenerationState::Quitting;
 	while(m_generation_status != GenerationState::Finished)

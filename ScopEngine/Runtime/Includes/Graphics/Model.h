@@ -15,6 +15,7 @@ namespace Scop
 	// Only static meshes for now
 	class Model
 	{
+		friend class ScopEngine;
 		friend Model LoadModelFromObjFile(std::filesystem::path path) noexcept;
 
 		public:

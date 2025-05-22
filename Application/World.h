@@ -26,14 +26,12 @@ class World
 	public:
 		World(Scop::Scene& scene);
 
-		void Quit() noexcept;
-
 		[[nodiscard]] inline Scop::Scene& GetScene() noexcept { return m_scene; }
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }
 		[[nodiscard]] Scop::NonOwningPtr<Chunk> GetChunk(Scop::Vec2i position);
 		[[nodiscard]] Noise& GetNoiseGenerator() noexcept { return m_noise; }
 
-		~World() = default;
+		~World();
 
 	private:
 		void UnloadChunks();

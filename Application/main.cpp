@@ -8,20 +8,8 @@
 int main(int ac, char** av)
 {
 	Scop::ScopEngine engine(ac, av, "Vox", 0, 0, GetExecutablePath().parent_path().parent_path() / "ScopEngine/Assets");
-
 	Scop::Scene& splash_scene = SplashScreen();
-
-	Scop::ShaderLayout shader_layout(
-		{
-			{ 1,
-				Scop::ShaderSetLayout({ 
-					{ 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER },
-					{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER }
-				})
-			}
-		}, {}
-	);
-	std::shared_ptr<Scop::Shader> shader = Scop::LoadShaderFromFile(GetExecutablePath().parent_path().parent_path() / "Resources/Fragment.spv", Scop::ShaderType::Fragment, std::move(shader_layout));
+	std::shared_ptr<Scop::Shader> shader = Scop::LoadShaderFromFile(GetExecutablePath().parent_path().parent_path() / "Resources/Fragment.spv", Scop::ShaderType::Fragment, Scop::DefaultShaderLayout);
 
 	Scop::SceneDescriptor main_scene_desc;
 	main_scene_desc.fragment_shader = shader;
@@ -32,10 +20,9 @@ int main(int ac, char** av)
 	Scop::Vec2ui32 skybox_size;
 	main_scene.AddSkybox(std::make_shared<Scop::CubeTexture>(Scop::LoadBMPFile(GetResourcesPath() / "skybox.bmp", skybox_size), skybox_size.x, skybox_size.y));
 
-	World world(main_scene);
-
-	engine.Run();
-
-	world.Quit();
+	{
+		World world(main_scene);
+		engine.Run();
+	}
 	return 0;
 }
