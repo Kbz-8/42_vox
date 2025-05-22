@@ -116,7 +116,7 @@ $(SHADER_DIR):
 shaders: $(SHADER_DIR) $(SPVS)
 
 _printbuildinfos:
-	@printf "$(_PURPLE)$(_BOLD)Vox $(_RESET)Compiling in $(_BOLD)$(MODE)$(_RESET) mode on $(_BOLD)$(OS)$(_RESET) | Using $(_BOLD)$(CXX) ($(shell $(CXX) --version | head -n 1))$(_RESET), flags: $(_BOLD)$(_ENABLEDFLAGS)$(_RESET)\n"
+	@printf "$(_PURPLE)$(_BOLD)ScopEngine $(_RESET)Compiling in $(_BOLD)$(MODE)$(_RESET) mode on $(_BOLD)$(OS)$(_RESET) | Using $(_BOLD)$(CXX) ($(shell $(CXX) --version | head -n 1))$(_RESET), flags: $(_BOLD)$(_ENABLEDFLAGS)$(_RESET)\n"
 
 debug:
 	@$(MAKE) all DEBUG=true -j$(shell nproc)

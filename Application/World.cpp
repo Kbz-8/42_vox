@@ -17,7 +17,8 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
 		static bool generate = true;
-		static bool debounce = false;
+		static bool generation_debounce = false;
+		static bool wireframe_debounce = false;
 
 		Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
 		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
@@ -25,11 +26,11 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 		m_current_chunk_position = Scop::Vec2i{ x_chunk, z_chunk };
 
 		if(input.IsKeyPressed(SDL_SCANCODE_G))
-			debounce = true;
-		else if(debounce)
+			generation_debounce = true;
+		else if(generation_debounce)
 		{
 			generate = !generate;
-			debounce = false;
+			generation_debounce = false;
 		}
 
 		if(generate)
@@ -46,6 +47,16 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 				m_previous_chunk_position = m_current_chunk_position;
 			}
 			Upload();
+		}
+
+		if(input.IsKeyPressed(SDL_SCANCODE_F))
+			wireframe_debounce = true;
+		else if(wireframe_debounce)
+		{
+			m_scene.GetForwardData().wireframe = !m_scene.GetForwardData().wireframe;
+			Scop::RenderCore::Get().WaitDeviceIdle();
+			m_scene.GetPipeline().Destroy();
+			wireframe_debounce = false;
 		}
 	};
 
