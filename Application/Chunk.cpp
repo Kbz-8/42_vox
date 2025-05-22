@@ -8,15 +8,23 @@ constexpr Scop::Vec2ui SPRITE_SIZE = { 16, 16 };
 constexpr Scop::Vec2ui ATLAS_SIZE = { 64, 64 };
 constexpr Scop::Vec2f SPRITE_UNIT = Scop::Vec2f(SPRITE_SIZE) / Scop::Vec2f(ATLAS_SIZE);
 
-constexpr std::array<Scop::Vec2ui, BlocksCount> BLOCKS_TO_ATLAS = {
-	Scop::Vec2ui{ 0, 0 }, // Air
-	Scop::Vec2ui{ 0, 0 }, // Dirt
-	Scop::Vec2ui{ 1, 0 }, // Stone
+constexpr std::array<std::array<Scop::Vec2ui, 3>, BlocksCount> BLOCKS_TO_ATLAS = {
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 } }, // Air
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 } }, // Dirt
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 0 } }, // Stone
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 2, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 3, 0 } }, // Grass
 };
 
-Scop::Vec2f GetAtlasOffset(BlockType type)
+enum class Side : std::uint8_t
 {
-	Scop::Vec2ui pos = BLOCKS_TO_ATLAS[static_cast<std::uint32_t>(type)];
+	Top = 0,
+	Bottom,
+	Side
+};
+
+Scop::Vec2f GetAtlasOffset(BlockType type, Side side)
+{
+	Scop::Vec2ui pos = BLOCKS_TO_ATLAS[static_cast<std::uint32_t>(type)][static_cast<std::uint8_t>(side)];
 	return Scop::Vec2f(Scop::Vec2f(pos.x, SPRITE_SIZE.y - pos.y - 1) * SPRITE_UNIT);
 }
 
@@ -66,10 +74,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset + 3);
 					m_mesh_index_data.push_back(offset + 1);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[0].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[0].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[1].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[1].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[1].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[2].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[2].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[2].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[3].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[3].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[3].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[0].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[0].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[1].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[1].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[1].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[2].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[2].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[2].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[3].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[3].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[3].uv)));
 
 					offset += 4;
 				}
@@ -83,10 +91,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset + 1);
 					m_mesh_index_data.push_back(offset);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[4].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[4].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[4].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[5].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[5].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[5].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[6].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[6].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[6].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[7].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[7].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[7].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[4].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[4].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[4].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[5].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[5].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[5].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[6].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[6].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[6].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[7].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[7].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[7].uv)));
 
 					offset += 4;
 				}
@@ -100,10 +108,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset + 2);
 					m_mesh_index_data.push_back(offset + 3);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[8].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[8].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[9].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[9].normal,  GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[9].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[10].position + Scop::Vec3f(x, y, z), BLOCK_MESH[10].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[10].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[11].position + Scop::Vec3f(x, y, z), BLOCK_MESH[11].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[11].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[8].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[0].normal,  GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[8].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[9].position  + Scop::Vec3f(x, y, z), BLOCK_MESH[9].normal,  GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[9].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[10].position + Scop::Vec3f(x, y, z), BLOCK_MESH[10].normal, GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[10].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[11].position + Scop::Vec3f(x, y, z), BLOCK_MESH[11].normal, GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[11].uv)));
 
 					offset += 4;
 				}
@@ -117,10 +125,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset);
 					m_mesh_index_data.push_back(offset + 2);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[12].position + Scop::Vec3f(x, y, z), BLOCK_MESH[12].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[12].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[13].position + Scop::Vec3f(x, y, z), BLOCK_MESH[13].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[13].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[14].position + Scop::Vec3f(x, y, z), BLOCK_MESH[14].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[14].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[15].position + Scop::Vec3f(x, y, z), BLOCK_MESH[15].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[15].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[12].position + Scop::Vec3f(x, y, z), BLOCK_MESH[12].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[12].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[13].position + Scop::Vec3f(x, y, z), BLOCK_MESH[13].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[13].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[14].position + Scop::Vec3f(x, y, z), BLOCK_MESH[14].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[14].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[15].position + Scop::Vec3f(x, y, z), BLOCK_MESH[15].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[15].uv)));
 
 					offset += 4;
 				}
@@ -134,10 +142,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset + 1);
 					m_mesh_index_data.push_back(offset);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[16].position + Scop::Vec3f(x, y, z), BLOCK_MESH[16].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[16].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[17].position + Scop::Vec3f(x, y, z), BLOCK_MESH[17].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[17].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[18].position + Scop::Vec3f(x, y, z), BLOCK_MESH[18].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[18].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[19].position + Scop::Vec3f(x, y, z), BLOCK_MESH[19].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[19].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[16].position + Scop::Vec3f(x, y, z), BLOCK_MESH[16].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[16].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[17].position + Scop::Vec3f(x, y, z), BLOCK_MESH[17].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[17].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[18].position + Scop::Vec3f(x, y, z), BLOCK_MESH[18].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[18].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[19].position + Scop::Vec3f(x, y, z), BLOCK_MESH[19].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[19].uv)));
 
 					offset += 4;
 				}
@@ -151,10 +159,10 @@ void Chunk::GenerateMesh()
 					m_mesh_index_data.push_back(offset + 3);
 					m_mesh_index_data.push_back(offset + 1);
 
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[20].position + Scop::Vec3f(x, y, z), BLOCK_MESH[20].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[20].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[21].position + Scop::Vec3f(x, y, z), BLOCK_MESH[21].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[21].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[22].position + Scop::Vec3f(x, y, z), BLOCK_MESH[22].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[22].uv)));
-					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[23].position + Scop::Vec3f(x, y, z), BLOCK_MESH[23].normal, GetAtlasOffset(type) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[23].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[20].position + Scop::Vec3f(x, y, z), BLOCK_MESH[20].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[20].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[21].position + Scop::Vec3f(x, y, z), BLOCK_MESH[21].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[21].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[22].position + Scop::Vec3f(x, y, z), BLOCK_MESH[22].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[22].uv)));
+					m_mesh_data.push_back(Scop::Vertex(BLOCK_MESH[23].position + Scop::Vec3f(x, y, z), BLOCK_MESH[23].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[23].uv)));
 
 					offset += 4;
 				}

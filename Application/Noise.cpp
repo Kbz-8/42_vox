@@ -10,7 +10,7 @@
 	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
 	{
 		if(y > std::min(height, CHUNK_SIZE.y) - 2)
-			data[y] = static_cast<std::uint32_t>(BlockType::Dirt);
+			data[y] = static_cast<std::uint32_t>(BlockType::Grass);
 		else
 			data[y] = static_cast<std::uint32_t>(BlockType::Stone);
 	}

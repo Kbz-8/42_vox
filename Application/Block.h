@@ -10,6 +10,7 @@ enum class BlockType : std::uint32_t
 	Air = 0,
 	Dirt,
 	Stone,
+	Grass,
 
 	EndEnum
 };
