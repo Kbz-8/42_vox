@@ -25,16 +25,6 @@ void Noise::InitPermutation(void)
 		this->perms[i] = permutations[i];
 		this->perms[i + 256] = permutations[i];
 	}
-	for (int val: this->perms)
-	{
-		std::cout << val << " ";
-	}
-	std::cout << std::endl;
-	std::cout << perlin3D2(0, 0, 0) << std::endl;
-	std::cout << perlin3D2(20, 20, 20) << std::endl;
-	std::cout << perlin3D(150, 150, 150) << std::endl;
-	std::cout << perlin3D(0.078f, 0.4f, 0.2f) << std::endl;
-
 }
 
 [[nodiscard]] const float Noise::fade(float t)
