@@ -11,6 +11,7 @@ enum class BlockType : std::uint32_t
 	Dirt,
 	Stone,
 	Grass,
+	Sand,
 
 	EndEnum
 };

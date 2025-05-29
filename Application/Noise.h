@@ -35,7 +35,6 @@ class Noise
 		[[nodiscard]] const int ApplyPerlin3DParameters(float x, float y, float z) noexcept;
 
 		[[nodiscard]] const float fade(float t) noexcept;
-		[[nodiscard]] const float lerp(float a, float b, float t) noexcept;
 		[[nodiscard]] const float grad2D(int hash, float x, float y) noexcept;
 		[[nodiscard]] const float grad(int hash, float x, float y, float z) noexcept;
 };

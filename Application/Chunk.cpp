@@ -9,10 +9,11 @@ constexpr Scop::Vec2ui ATLAS_SIZE = { 64, 64 };
 constexpr Scop::Vec2f SPRITE_UNIT = Scop::Vec2f(SPRITE_SIZE) / Scop::Vec2f(ATLAS_SIZE);
 
 constexpr std::array<std::array<Scop::Vec2ui, 3>, BlocksCount> BLOCKS_TO_ATLAS = {
-	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 } }, // Air
-	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 } }, // Dirt
-	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 0 } }, // Stone
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 } }, // Air
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 } }, // Dirt
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 0 }, Scop::Vec2ui{ 1, 0 }, Scop::Vec2ui{ 1, 0 } }, // Stone
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 2, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 3, 0 } }, // Grass
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 1 }, Scop::Vec2ui{ 0, 1 }, Scop::Vec2ui{ 0, 1 } }, // Sand
 };
 
 enum class Side : std::uint8_t
