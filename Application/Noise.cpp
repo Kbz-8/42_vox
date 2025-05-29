@@ -27,18 +27,19 @@ void Noise::InitPermutation(void)
 	}
 }
 
-[[nodiscard]] const float Noise::fade(float t)
+[[nodiscard]] const float Noise::fade(float t) noexcept
 {
 
 	return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-[[nodiscard]] const float Noise::lerp(float a, float b, float t)
+[[nodiscard]] const float Noise::lerp(float a, float b, float t) noexcept
 {
 	return (a + t * (b - a));
 }
 
-const float Noise::perlin2D(float x, float y) {
+const float Noise::Perlin2D(float x, float y) noexcept 
+{
     int xi = (int)floor(x) & 255;
     int yi = (int)floor(y) & 255;
 
@@ -61,7 +62,7 @@ const float Noise::perlin2D(float x, float y) {
     return ((lerp(x1, x2, v) + 1.0f) / 2.0f);
 }
 
-const int Noise::perlin2D2(float x, float y) // Wrapper to apply various mumbo jumbo to get a very worldlike generation
+const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper to apply various mumbo jumbo to get a very worldlike generation
 {
 	float total = 0.0f;
 	float tmp_freq = frequency;
@@ -69,7 +70,7 @@ const int Noise::perlin2D2(float x, float y) // Wrapper to apply various mumbo j
 	float maxValue = 0.0f;
 
 	 for (int i = 0; i < this->octaves; ++i) {
-        total += perlin2D(x * tmp_freq, y * tmp_freq) * tmp_amp;
+        total += Perlin2D(x * tmp_freq, y * tmp_freq) * tmp_amp;
         maxValue += tmp_amp;
 		tmp_amp *= persistance;
         tmp_freq *= lacunarity;
@@ -79,15 +80,16 @@ const int Noise::perlin2D2(float x, float y) // Wrapper to apply various mumbo j
     return static_cast<int>(normalized * 255.0f);
 }
 
-const int Noise::perlin2D(int x, int y) { // Wrapper to unnormalise input and output
+[[nodiscard]] const int Noise::Perlin2D(int x, int y) noexcept
+{ // Wrapper to unnormalise input and output
     float scaledX = static_cast<float>(x) * frequency;
     float scaledY = static_cast<float>(y) * frequency;
-    return floor(perlin2D2(scaledX, scaledY));
+    return floor(ApplyPerlin2DParameters(scaledX, scaledY));
 }
 
 
 
-[[nodiscard]] const float Noise::grad2D(int hash, float x, float y)
+[[nodiscard]] const float Noise::grad2D(int hash, float x, float y) noexcept
 {
     int h = hash & 7; // 8 directions
     float u = h < 4 ? x : y;
@@ -96,7 +98,8 @@ const int Noise::perlin2D(int x, int y) { // Wrapper to unnormalise input and ou
     return ((h & 1) ? -u : u) + ((h & 2) ? -v : v);
 }
 
-[[nodiscard]] const float Noise::grad(int hash, float x, float y, float z) {
+[[nodiscard]] const float Noise::grad(int hash, float x, float y, float z) noexcept 
+{
     int h = hash & 15;  // 16 directions possibles
     float u = h < 8 ? x : y;
     float v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
@@ -104,15 +107,16 @@ const int Noise::perlin2D(int x, int y) { // Wrapper to unnormalise input and ou
 }
 
 
-const int Noise::perlin3D(int x, int y, int z)
+[[nodiscard]] const int Noise::Perlin3D(int x, int y, int z) noexcept
 {
 	float scaledX = static_cast<float>(x) * frequency;
     float scaledY = static_cast<float>(y) * frequency;
 	float scaledZ = static_cast<float>(z) * frequency;
-    return floor(perlin3D2(scaledX, scaledY, scaledZ));
+    return floor(ApplyPerlin3DParameters(scaledX, scaledY, scaledZ));
 }
 
-const float Noise::perlin3D(float x, float y, float z) {
+[[nodiscard]] const float Noise::Perlin3D(float x, float y, float z) noexcept 
+{
     int xi = (int)floor(x) & 255;
     int yi = (int)floor(y) & 255;
     int zi = (int)floor(z) & 255;
@@ -150,7 +154,7 @@ const float Noise::perlin3D(float x, float y, float z) {
     return ((lerp(y1, y2, w) + 1.0f) / 2.0f) * amplitude;
 }
 
-const int Noise::perlin3D2(float x, float y, float z)
+[[nodiscard]] const int Noise::ApplyPerlin3DParameters(float x, float y, float z) noexcept
 {
 	float total = 0.0f;
 	float tmp_freq = frequency;
@@ -158,7 +162,7 @@ const int Noise::perlin3D2(float x, float y, float z)
 	float maxValue = 0.0f;
 
 	 for (int i = 0; i < this->octaves; ++i) {
-        total += perlin3D(x * tmp_freq, y * tmp_freq, z * tmp_freq) * tmp_amp;
+        total += Perlin3D(x * tmp_freq, y * tmp_freq, z * tmp_freq) * tmp_amp;
         maxValue += tmp_amp;
 		tmp_amp *= persistance;
         tmp_freq *= lacunarity;
@@ -177,7 +181,7 @@ const int Noise::perlin3D2(float x, float y, float z)
 	
 	//std::uint32_t height = std::abs(std::sin((float)pos.x / 20.0f) * std::cos((float)pos.y / 20.0f) * 60.0f) + 1;
 	
-	std::uint32_t height = perlin2D(pos.x, pos.y); 
+	std::uint32_t height = Perlin2D(pos.x, pos.y); 
 	// Must not exceed CHUNK_SIZE.y
 	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
 	{

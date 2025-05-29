@@ -14,12 +14,8 @@ class Noise
 		Noise(const std::uint32_t seed = 42, float frequency = 0.05f, float amplitude = 0.9f, int octaves = 4, float lacunarity = 2.0f, float persistance = 0.5f);
 
 		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
-		const float perlin2D(float x, float y);
-		const int perlin2D(int x, int y);
-		const int perlin2D2(float x, float y);
-		const int perlin3D(int x, int y, int z);
-		const float perlin3D(float x, float y, float z);
-		const int perlin3D2(float x, float y, float z);
+		[[nodiscard]] const int Perlin2D(int x, int y) noexcept;
+		[[nodiscard]] const int Perlin3D(int x, int y, int z) noexcept;
 		~Noise() = default;
 
 	private:
@@ -31,10 +27,17 @@ class Noise
 		const float lacunarity;
 		const float persistance;
 		void InitPermutation(void);
-		[[nodiscard]] const float fade(float t);
-		[[nodiscard]] const float lerp(float a, float b, float t);
-		[[nodiscard]] const float grad2D(int hash, float x, float y);
-		[[nodiscard]] const float grad(int hash, float x, float y, float z);
+
+		[[nodiscard]] const float Perlin2D(float x, float y) noexcept;
+		[[nodiscard]] const int ApplyPerlin2DParameters(float x, float y) noexcept;
+
+		[[nodiscard]] const float Perlin3D(float x, float y, float z) noexcept;
+		[[nodiscard]] const int ApplyPerlin3DParameters(float x, float y, float z) noexcept;
+
+		[[nodiscard]] const float fade(float t) noexcept;
+		[[nodiscard]] const float lerp(float a, float b, float t) noexcept;
+		[[nodiscard]] const float grad2D(int hash, float x, float y) noexcept;
+		[[nodiscard]] const float grad(int hash, float x, float y, float z) noexcept;
 };
 
 #endif
