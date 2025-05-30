@@ -11,7 +11,7 @@
 class Noise
 {
 	public:
-		Noise(const std::uint32_t seed = 42, float frequency = 0.05f, float amplitude = 0.95f, int octaves = 4, float lacunarity = 2.4f, float persistance = 0.8f, int redistribution = 3);
+		Noise(const std::uint32_t seed = 42, float frequency = 0.045f, float amplitude = 0.80f, int octaves = 4, float lacunarity = 2.0f, float persistance = 0.7f, int redistribution = 4, float compensatory_factor = 1.3f);
 
 		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
 		[[nodiscard]] const int Perlin2D(int x, int y) noexcept;
@@ -19,14 +19,15 @@ class Noise
 		~Noise() = default;
 
 	private:
-		std::mt19937 seed;
+		std::mt19937 m_seed;
 		std::array<int, NOISE_SIZE> perms;
-		const float frequency;
-		const float amplitude;
-		const int octaves;
-		const float lacunarity;
-		const float persistance;
-		const int redistribution;
+		const float c_frequency;
+		const float c_amplitude;
+		const int c_octaves;
+		const float c_lacunarity;
+		const float c_persistance;
+		const int c_redistribution;
+		const float c_compensatory_factor;
 		void InitPermutation(void);
 
 		[[nodiscard]] const float Perlin2D(float x, float y) noexcept;
