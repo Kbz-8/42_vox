@@ -184,7 +184,14 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 	{
 		// const std::uint32_t value = Perlin3D(pos.x, y, pos.y);
 		if(y > std::min(height, CHUNK_SIZE.y) - 2)
-			data[y] = static_cast<std::uint32_t>(BlockType::Grass);
+		{
+			if (height <= 23)
+				data[y] = static_cast<std::uint32_t>(BlockType::Sand);
+			else if (height < 140)
+				data[y] = static_cast<std::uint32_t>(BlockType::Grass);
+			else
+				data[y] = static_cast<std::uint32_t>(BlockType::Stone);
+		}
 		else
 			data[y] = static_cast<std::uint32_t>(BlockType::Stone);
 	}
