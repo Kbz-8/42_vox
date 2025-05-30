@@ -11,7 +11,7 @@
 class Noise
 {
 	public:
-		Noise(const std::uint32_t seed = 42, float frequency = 0.05f, float amplitude = 0.9f, int octaves = 4, float lacunarity = 2.0f, float persistance = 0.5f);
+		Noise(const std::uint32_t seed = 42, float frequency = 0.05f, float amplitude = 0.95f, int octaves = 4, float lacunarity = 2.4f, float persistance = 0.8f, int redistribution = 3);
 
 		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
 		[[nodiscard]] const int Perlin2D(int x, int y) noexcept;
@@ -26,6 +26,7 @@ class Noise
 		const int octaves;
 		const float lacunarity;
 		const float persistance;
+		const int redistribution;
 		void InitPermutation(void);
 
 		[[nodiscard]] const float Perlin2D(float x, float y) noexcept;

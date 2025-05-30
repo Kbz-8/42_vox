@@ -1,3 +1,4 @@
+#include "Maths/Vec3.h"
 #include <Noise.h>
 #include <Block.h>
 #include <cstdint>
@@ -5,11 +6,14 @@
 
 constexpr float HEIGHT_COEFF = 255.0f;
 
-Noise::Noise(const std::uint32_t seed, float frequency, float amplitude, int octaves, float lacunarity, float persistance): seed(std::mt19937(seed)), frequency(frequency), amplitude(amplitude), octaves(octaves), lacunarity(lacunarity), persistance(persistance)
+constexpr std::uint32_t WATER_LEVEL = 20;
+
+Noise::Noise(const std::uint32_t seed, float frequency, float amplitude, int octaves, float lacunarity, float persistance, int redistribution): seed(std::mt19937(seed)), frequency(frequency), amplitude(amplitude), octaves(octaves), lacunarity(lacunarity), persistance(persistance), redistribution(redistribution)
 {
 	if(amplitude > 1.0f || amplitude < -1.0f)
 		Scop::FatalError("Amplitude value must be in [-1;1]");
-
+	if(redistribution <= 0)
+		Scop::FatalError("Redistribution cannot be a negative integer");
 	InitPermutation();
 }
 
@@ -72,6 +76,7 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
     }
 	float normalized = total / maxValue;
 	normalized = std::clamp(normalized, 0.0f, 1.0f);
+	normalized = std::pow(normalized, redistribution);
     return static_cast<int>(normalized * HEIGHT_COEFF);
 }
 
@@ -172,14 +177,21 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
 	
 	//std::uint32_t height = std::abs(std::sin((float)pos.x / 20.0f) * std::cos((float)pos.y / 20.0f) * 60.0f) + 1;
-	
-	std::uint32_t height = Perlin2D(pos.x, pos.y); 
+		
+	const std::uint32_t height = Perlin2D(pos.x, pos.y);
+
 	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
 	{
+		// const std::uint32_t value = Perlin3D(pos.x, y, pos.y);
 		if(y > std::min(height, CHUNK_SIZE.y) - 2)
 			data[y] = static_cast<std::uint32_t>(BlockType::Grass);
 		else
 			data[y] = static_cast<std::uint32_t>(BlockType::Stone);
+	}
+	for (std::uint32_t y = 0; y < WATER_LEVEL; y++)
+	{
+		if (data[y] == static_cast<std::uint32_t>(BlockType::Air))
+			data[y] = static_cast<std::uint32_t>(BlockType::Sand);
 	}
 	return data;
 }
