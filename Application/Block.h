@@ -12,6 +12,10 @@ enum class BlockType : std::uint32_t
 	Stone,
 	Grass,
 	Sand,
+	Water,
+	Snow,
+	SnowyGrass,
+	Cactus,
 
 	EndEnum
 };

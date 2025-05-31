@@ -14,6 +14,10 @@ constexpr std::array<std::array<Scop::Vec2ui, 3>, BlocksCount> BLOCKS_TO_ATLAS =
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 0 }, Scop::Vec2ui{ 1, 0 }, Scop::Vec2ui{ 1, 0 } }, // Stone
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 2, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 3, 0 } }, // Grass
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 1 }, Scop::Vec2ui{ 0, 1 }, Scop::Vec2ui{ 0, 1 } }, // Sand
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 1 }, Scop::Vec2ui{ 1, 1 }, Scop::Vec2ui{ 1, 1 } }, // Water
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 2, 1 }, Scop::Vec2ui{ 2, 1 }, Scop::Vec2ui{ 2, 1 } }, // Snow
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 3, 1 }, Scop::Vec2ui{ 3, 1 }, Scop::Vec2ui{ 3, 1 } }, // SnowyGrass
+	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 2 }, Scop::Vec2ui{ 0, 2 }, Scop::Vec2ui{ 0, 2 } }, // Cactus
 };
 
 enum class Side : std::uint8_t
