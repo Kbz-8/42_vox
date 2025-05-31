@@ -10,7 +10,7 @@
 #include <Utils.h>
 #include <NoiseCollection.h>
 
-constexpr std::uint8_t RENDER_DISTANCE = 10;
+constexpr std::uint8_t RENDER_DISTANCE = 15;
 constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 3;
 
 enum class GenerationState: std::uint8_t

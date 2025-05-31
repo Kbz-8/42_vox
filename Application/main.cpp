@@ -17,7 +17,7 @@ int main(int ac, char** av)
 	main_scene_desc.post_process_shader = post_process_shader;
 	main_scene_desc.post_process_data_size = sizeof(std::int32_t);
 	main_scene_desc.render_post_process_enabled = true;
-	main_scene_desc.camera = std::make_shared<Scop::FirstPerson3D>(Scop::Vec3f{ 0.0f, 20.0f, 0.0f }, 80.f);
+	main_scene_desc.camera = std::make_shared<Scop::FirstPerson3D>(Scop::Vec3f{ 0.0f, 100.0f, 0.0f }, 80.f, 1.0f);
 	main_scene_desc.culling = Scop::CullMode::Front;
 	Scop::Scene& main_scene = splash_scene.AddChildScene("main", std::move(main_scene_desc));
 

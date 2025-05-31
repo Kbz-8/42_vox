@@ -10,13 +10,13 @@ namespace Scop
 	{
 		public:
 			FirstPerson3D();
-			FirstPerson3D(Vec3f position, float fov = 90.0f);
+			FirstPerson3D(Vec3f position, float fov = 90.0f, float speed = 50.0f);
 
 			void Update(class Inputs& input, float aspect, float timestep) override;
 
 			[[nodiscard]] inline constexpr std::string GetCameraType() override { return "FirstPerson3D"; }
 			[[nodiscard]] const Vec3f& GetPosition() const noexcept override { return m_position; }
-			[[nodiscard]] const Vec3f& GetUp() const noexcept { return m_up; }
+			[[nodiscard]] const Vec3f& GetUp() const noexcept { return c_up; }
 			[[nodiscard]] const Vec3f& GetLeft() const noexcept { return m_left; }
 			[[nodiscard]] const Vec3f& GetTarget() const noexcept { return m_target; }
 			[[nodiscard]] const Vec3f& GetDirection() const noexcept { return m_direction; }
@@ -27,7 +27,7 @@ namespace Scop
 			void UpdateView();
 
 		private:
-			const Vec3f m_up;
+			const Vec3f c_up;
 			Vec3f m_position;
 			Vec3f m_left;
 			Vec3f m_forward;
@@ -38,8 +38,8 @@ namespace Scop
 			float m_theta = 0.0;
 			float m_phi = 0.0;
 
-			const float m_speed = 50.0f;
-			const float m_sensivity = 0.7f;
+			const float c_speed = 50.0f;
+			const float c_sensivity = 0.7f;
 			float m_speed_factor = 1.0f;
 			float m_fov = 90.0f;
 
