@@ -159,8 +159,8 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 	float tmp_amp = c_amplitude;
 	float maxValue = 0.0f;
 
-	 for(int i = 0; i < this->c_octaves; ++i)
-	 {
+	for(int i = 0; i < this->c_octaves; ++i)
+	{
 		total += Perlin3D(x * tmp_freq, y * tmp_freq, z * tmp_freq) * tmp_amp;
 		maxValue += tmp_amp;
 		tmp_amp *= c_persistance;
@@ -175,9 +175,7 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 {
 	std::array<std::uint32_t, CHUNK_SIZE.y> data;
 	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
-	
-	//std::uint32_t height = std::abs(std::sin((float)pos.x / 20.0f) * std::cos((float)pos.y / 20.0f) * 60.0f) + 1;
-		
+
 	const std::uint32_t height = Perlin2D(pos.x, pos.y);
 
 	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
@@ -198,7 +196,7 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 	for(std::uint32_t y = 0; y < WATER_LEVEL; y++)
 	{
 		if(data[y] == static_cast<std::uint32_t>(BlockType::Air))
-			data[y] = static_cast<std::uint32_t>(BlockType::Sand);
+			data[y] = static_cast<std::uint32_t>(BlockType::Water);
 	}
 	return data;
 }

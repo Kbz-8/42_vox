@@ -21,13 +21,12 @@ namespace Scop
 
 			inline void AttachScript(std::shared_ptr<ActorScript> script) { p_script = script; }
 
-			inline void SetColor(Vec4f color) noexcept { m_color = color; }
 			inline void SetPosition(Vec3f position) noexcept { m_position = position; }
 			inline void SetScale(Vec3f scale) noexcept { m_scale = scale; }
 			inline void SetOrientation(Quatf orientation) noexcept { m_orientation = orientation; }
 			inline void SetVisibility(bool show) noexcept { m_is_visible = show; }
+			inline void SetIsOpaque(bool opaque) noexcept { m_is_opaque = opaque; }
 
-			[[nodiscard]] inline const Vec4f& GetColor() const noexcept { return m_color; }
 			[[nodiscard]] inline const Vec3f& GetPosition() const noexcept { return m_position; }
 			[[nodiscard]] inline const Vec3f& GetScale() const noexcept { return m_scale; }
 			[[nodiscard]] inline const Quatf& GetOrientation() const noexcept { return m_orientation; }
@@ -35,6 +34,7 @@ namespace Scop
 			[[nodiscard]] inline Model& GetModelRef() noexcept { return m_model; }
 			[[nodiscard]] inline std::uint64_t GetUUID() const noexcept { return m_uuid; }
 			[[nodiscard]] inline bool IsVisible() const noexcept { return m_is_visible; }
+			[[nodiscard]] inline bool IsOpaque() const noexcept { return m_is_opaque; }
 
 			~Actor();
 
@@ -44,12 +44,12 @@ namespace Scop
 		private:
 			Model m_model;
 			Quatf m_orientation = Quatf::Identity();
-			Vec4f m_color = Vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
 			Vec3f m_position = Vec3f{ 0.0f, 0.0f, 0.0f };
 			Vec3f m_scale = Vec3f{ 1.0f, 1.0f, 1.0f };
 			std::shared_ptr<ActorScript> p_script;
 			std::uint64_t m_uuid;
 			bool m_is_visible = true;
+			bool m_is_opaque = true;
 	};
 }
 

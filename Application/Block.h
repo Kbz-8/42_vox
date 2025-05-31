@@ -8,11 +8,11 @@
 enum class BlockType : std::uint32_t
 {
 	Air = 0,
+	Water,
 	Dirt,
 	Stone,
 	Grass,
 	Sand,
-	Water,
 	Snow,
 	SnowyGrass,
 	Cactus,

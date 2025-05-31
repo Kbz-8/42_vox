@@ -20,6 +20,7 @@ class Chunk
 		void UploadMesh();
 		[[nodiscard]] std::uint32_t GetBlock(Scop::Vec3i position) const noexcept;
 		[[nodiscard]] inline Scop::NonOwningPtr<Scop::Actor> GetActor() const noexcept { return p_actor; }
+		[[nodiscard]] inline Scop::NonOwningPtr<Scop::Actor> GetWaterActor() const noexcept { return p_water_actor; }
 		[[nodiscard]] inline Scop::Vec2i GetPosition() const noexcept { return m_position; }
 
 		~Chunk() = default;
@@ -27,11 +28,14 @@ class Chunk
 	private:
 		std::vector<Scop::Vertex> m_mesh_data;
 		std::vector<std::uint32_t> m_mesh_index_data;
+		std::vector<Scop::Vertex> m_water_mesh_data;
+		std::vector<std::uint32_t> m_water_mesh_index_data;
 		std::array<std::array<std::uint32_t, CHUNK_SIZE.y>, CHUNK_SIZE.x * CHUNK_SIZE.z> m_data;
 		Scop::Vec2i m_offset; // In chunks
 		Scop::Vec2i m_position; // In blocks
 		class World& m_world;
 		Scop::NonOwningPtr<Scop::Actor> p_actor = nullptr;
+		Scop::NonOwningPtr<Scop::Actor> p_water_actor = nullptr;
 };
 
 #endif

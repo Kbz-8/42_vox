@@ -92,6 +92,8 @@ void World::UnloadChunks()
 		{
 			if(it->second.GetActor())
 				m_scene.RemoveActor(*it->second.GetActor());
+			if(it->second.GetWaterActor())
+				m_scene.RemoveActor(*it->second.GetWaterActor());
 			it = m_chunks.erase(it);
 		}
 		else
