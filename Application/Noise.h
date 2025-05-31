@@ -9,14 +9,12 @@
 
 constexpr float HEIGHT_COEFF = 255.0f;
 constexpr std::uint32_t NOISE_SIZE = 512;
-constexpr std::uint32_t WATER_LEVEL = 20;
 
 class Noise
 {
 	public:
 		Noise(const std::uint32_t seed, float frequency, float amplitude, int octaves, float lacunarity, float persistance, int redistribution, float compensatory_factor);
 
-		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
 		[[nodiscard]] const int Perlin2D(int x, int y) noexcept;
 		[[nodiscard]] const int Perlin3D(int x, int y, int z) noexcept;
 

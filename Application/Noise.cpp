@@ -166,32 +166,3 @@ const int Noise::ApplyPerlin2DParameters(float x, float y) noexcept // Wrapper t
 	return static_cast<int>(normalized * HEIGHT_COEFF);
 }
 
-[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> Noise::GetHeight(Scop::Vec2i pos)
-{
-	std::array<std::uint32_t, CHUNK_SIZE.y> data;
-	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
-
-	const std::uint32_t height = Perlin2D(pos.x, pos.y);
-
-	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
-	{
-		// const std::uint32_t value = Perlin3D(pos.x, y, pos.y);
-		if(y > std::min(height, CHUNK_SIZE.y) - 2)
-		{
-			if(height <= 23)
-				data[y] = static_cast<std::uint32_t>(BlockType::Sand);
-			else if(height < 140)
-				data[y] = static_cast<std::uint32_t>(BlockType::Grass);
-			else
-				data[y] = static_cast<std::uint32_t>(BlockType::Snow);
-		}
-		else
-			data[y] = static_cast<std::uint32_t>(BlockType::Stone);
-	}
-	for(std::uint32_t y = 0; y < WATER_LEVEL; y++)
-	{
-		if(data[y] == static_cast<std::uint32_t>(BlockType::Air))
-			data[y] = static_cast<std::uint32_t>(BlockType::Water);
-	}
-	return data;
-}
