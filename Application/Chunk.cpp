@@ -47,7 +47,7 @@ void Chunk::GenerateChunk()
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
-			std::memcpy(m_data[POS_TO_INDEX(x, z)].data(), m_world.GetNoiseGenerator().GetHeight(m_position + Scop::Vec2i(x, z)).data(), CHUNK_SIZE.y * sizeof(std::uint32_t));
+			std::memcpy(m_data[POS_TO_INDEX(x, z)].data(), m_world.GetNoiseGenerator().GetBlocks(m_position + Scop::Vec2i(x, z)).data(), CHUNK_SIZE.y * sizeof(std::uint32_t));
 	}
 }
 

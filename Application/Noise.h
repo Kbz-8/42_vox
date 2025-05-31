@@ -14,7 +14,7 @@ constexpr std::uint32_t WATER_LEVEL = 20;
 class Noise
 {
 	public:
-		Noise(const std::uint32_t seed = 42, float frequency = 0.045f, float amplitude = 0.80f, int octaves = 4, float lacunarity = 2.0f, float persistance = 0.7f, int redistribution = 4, float compensatory_factor = 1.2f);
+		Noise(const std::uint32_t seed, float frequency, float amplitude, int octaves, float lacunarity, float persistance, int redistribution, float compensatory_factor);
 
 		[[nodiscard]] std::array<std::uint32_t, CHUNK_SIZE.y> GetHeight(Scop::Vec2i pos);
 		[[nodiscard]] const int Perlin2D(int x, int y) noexcept;

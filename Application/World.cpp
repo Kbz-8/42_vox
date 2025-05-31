@@ -6,7 +6,7 @@
 #include <World.h>
 #include <Utils.h>
 
-World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-1000, 10000)
+World::World(Scop::Scene& scene) : m_noisecollection(42), m_scene(scene), m_previous_chunk_position(-1000, 10000)
 {
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
