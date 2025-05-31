@@ -28,8 +28,12 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), m_scene(scene), m_prev
 
 		if(Scop::NonOwningPtr<Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
 		{
-			Scop::Vec3f camera_pos = scene->GetCamera()->GetPosition();
-			scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = current_chunk->GetBlock(Scop::Vec3i(std::abs(camera_pos.x - m_current_chunk_position.x), camera_pos.y, std::abs(camera_pos.z - m_current_chunk_position.y))) == static_cast<std::uint32_t>(BlockType::Water);
+			Scop::Vec3i camera_pos = Scop::Vec3i(std::floor(scene->GetCamera()->GetPosition().x), scene->GetCamera()->GetPosition().y, std::floor(scene->GetCamera()->GetPosition().z));
+			camera_pos.x %= CHUNK_SIZE.x;
+			camera_pos.z %= CHUNK_SIZE.z;
+			camera_pos.x += CHUNK_SIZE.x;
+			camera_pos.z += CHUNK_SIZE.z;
+			scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = current_chunk->GetBlock(Scop::Vec3i(camera_pos.x % CHUNK_SIZE.x, camera_pos.y, camera_pos.z % CHUNK_SIZE.z)) == static_cast<std::uint32_t>(BlockType::Water);
 		}
 
 		if(input.IsKeyPressed(SDL_SCANCODE_G))
