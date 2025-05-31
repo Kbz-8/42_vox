@@ -78,7 +78,7 @@ void Chunk::GenerateMesh()
 				std::vector<std::uint32_t>& index_data = (is_water ? m_water_mesh_index_data : m_mesh_index_data);
 				std::uint32_t& offset = (is_water ? water_offset : mesh_offset);
 
-				Scop::Vec4f color = is_water ? Scop::Vec4f{ 1.0f, 1.0f, 1.0f, 0.8f } : Scop::Vec4f{ 1.0f };
+				Scop::Vec4f color = is_water ? Scop::Vec4f{ 1.0f, 1.0f, 1.0f, 0.9f } : Scop::Vec4f{ 1.0f };
 
 				std::uint32_t invalid_limit = is_water ? static_cast<std::uint32_t>(BlockType::Air) : static_cast<std::uint32_t>(BlockType::Water);
 

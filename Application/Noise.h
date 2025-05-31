@@ -7,7 +7,10 @@
 #include <array>
 #include <random>
 
-#define NOISE_SIZE 512
+constexpr float HEIGHT_COEFF = 255.0f;
+constexpr std::uint32_t NOISE_SIZE = 512;
+constexpr std::uint32_t WATER_LEVEL = 20;
+
 class Noise
 {
 	public:

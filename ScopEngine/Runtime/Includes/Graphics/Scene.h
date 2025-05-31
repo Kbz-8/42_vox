@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <map>
 
 #include <Utils/NonOwningPtr.h>
 
@@ -24,11 +23,14 @@ namespace Scop
 	struct SceneDescriptor
 	{
 		std::shared_ptr<Shader> fragment_shader;
+		std::shared_ptr<Shader> post_process_shader = nullptr;
 		std::shared_ptr<BaseCamera> camera;
 		CullMode culling;
+		std::size_t post_process_data_size = 0;
 		bool render_3D_enabled = true;
 		bool render_2D_enabled = true;
 		bool render_skybox_enabled = true;
+		bool render_post_process_enabled = false;
 	};
 
 	class Scene
@@ -42,6 +44,13 @@ namespace Scop
 				std::shared_ptr<DescriptorSet> albedo_set;
 				std::shared_ptr<UniformBuffer> matrices_buffer;
 				bool wireframe = false;
+			};
+
+			struct PostProcessData
+			{
+				std::shared_ptr<DescriptorSet> set;
+				std::shared_ptr<UniformBuffer> data_buffer;
+				CPUBuffer data;
 			};
 
 		public:
@@ -67,6 +76,7 @@ namespace Scop
 			void SwitchToParent() const noexcept;
 
 			[[nodiscard]] inline ForwardData& GetForwardData() noexcept { return m_forward; }
+			[[nodiscard]] inline PostProcessData& GetPostProcessData() noexcept { return m_post_process; }
 			[[nodiscard]] inline const std::unordered_map<std::uint64_t, Actor>& GetActors() const noexcept { return m_actors; }
 			[[nodiscard]] inline const std::unordered_map<std::uint64_t, Sprite>& GetSprites() const noexcept { return m_sprites; }
 			[[nodiscard]] inline const std::string& GetName() const noexcept { return m_name; }
@@ -88,6 +98,7 @@ namespace Scop
 		private:
 			GraphicPipeline m_pipeline;
 			ForwardData m_forward;
+			PostProcessData m_post_process;
 			DepthImage m_depth;
 			SceneDescriptor m_descriptor;
 			std::shared_ptr<CubeTexture> p_skybox;

@@ -114,6 +114,7 @@ namespace Scop
 			{
 				m_depth.Destroy();
 				m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight(), false, m_name + "_depth");
+				m_depth.CreateSampler();
 			}
 
 			if(event.What() == Event::ResizeEventCode || event.What() == Event::SceneHasChangedEventCode)
@@ -121,8 +122,18 @@ namespace Scop
 		};
 		EventBus::RegisterListener({ functor, m_name + std::to_string(reinterpret_cast<std::uintptr_t>(this)) });
 
+		if(m_descriptor.post_process_shader)
+		{
+			m_post_process.set = std::make_shared<DescriptorSet>(m_descriptor.post_process_shader->GetShaderLayout().set_layouts[0].second, m_descriptor.post_process_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+			m_post_process.data_buffer = std::make_shared<UniformBuffer>();
+			m_post_process.data_buffer->Init(m_descriptor.post_process_data_size, m_name + "_post_process_data_buffer");
+		}
+
+		m_post_process.data.Allocate(m_descriptor.post_process_data_size);
+
 		auto vertex_shader = RenderCore::Get().GetDefaultVertexShader();
 		m_depth.Init(renderer->GetSwapchain().GetSwapchainImages().back().GetWidth(), renderer->GetSwapchain().GetSwapchainImages().back().GetHeight(), false, m_name + "_depth");
+		m_depth.CreateSampler();
 		m_forward.matrices_buffer = std::make_shared<UniformBuffer>();
 		m_forward.matrices_buffer->Init(sizeof(ViewerData), m_name + "_matrice_buffer");
 
@@ -160,7 +171,10 @@ namespace Scop
 		m_sprites.clear();
 		m_pipeline.Destroy();
 		m_descriptor.fragment_shader.reset();
+		m_descriptor.post_process_shader.reset();
 		m_forward.matrices_buffer->Destroy();
+		if(m_post_process.data_buffer)
+			m_post_process.data_buffer->Destroy();
 		for(auto& child : m_scene_children)
 			child.Destroy();
 	}

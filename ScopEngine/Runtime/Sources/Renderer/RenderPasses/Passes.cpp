@@ -8,6 +8,7 @@ namespace Scop
 	{
 		m_skybox.Init();
 		m_2Dpass.Init();
+		m_post_process.Init();
 		m_final.Init();
 
 		std::function<void(const EventBase&)> functor = [this](const EventBase& event)
@@ -36,8 +37,13 @@ namespace Scop
 			m_skybox.Pass(scene, renderer, m_main_render_texture);
 		if(scene.GetDescription().render_2D_enabled)
 			m_2Dpass.Pass(scene, renderer, m_main_render_texture);
-
-		m_final.Pass(scene, renderer, m_main_render_texture);
+		if(scene.GetDescription().render_post_process_enabled && scene.GetDescription().post_process_shader)
+		{
+			m_post_process.Pass(scene, renderer, m_main_render_texture);
+			m_final.Pass(scene, renderer, m_post_process.GetProcessTexture());
+		}
+		else
+			m_final.Pass(scene, renderer, m_main_render_texture);
 	}
 
 	void RenderPasses::Destroy()
@@ -45,6 +51,7 @@ namespace Scop
 		RenderCore::Get().WaitDeviceIdle();
 		m_skybox.Destroy();
 		m_2Dpass.Destroy();
+		m_post_process.Destroy();
 		m_final.Destroy();
 		m_main_render_texture.Destroy();
 	}

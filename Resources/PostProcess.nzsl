@@ -1,0 +1,59 @@
+[nzsl_version("1.0")]
+module;
+
+struct VertOut
+{
+	[location(0)] uv: vec2[f32]
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+[layout(std140)]
+struct Data
+{
+    underwater: i32,
+}
+
+external
+{
+    [set(0), binding(0)] u_texture: sampler2D[f32],
+    [set(0), binding(1)] u_depth: sampler2D[f32],
+    [set(0), binding(2)] u_data: uniform[Data],
+}
+
+fn Mixf32(a: f32, b: f32, t: f32) -> f32
+{
+    return a + (b - a) * t;
+}
+
+fn MixVec4f32(a: vec4[f32], b: vec4[f32], t: f32) -> vec4[f32]
+{
+    return vec4[f32](
+        Mixf32(a.x, b.x, t),
+        Mixf32(a.y, b.y, t),
+        Mixf32(a.z, b.z, t),
+        Mixf32(a.w, b.w, t)
+    );
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+    const fog_near: f32 = 0.9;
+    const fog_far: f32 = 1.0;
+    const fog_color: vec4[f32] = vec4[f32](0.0, 0.0, 0.25, 1.0);
+
+    let output: FragOut;
+    output.color = u_texture.Sample(input.uv);
+    if(u_data.underwater != 0)
+    {
+        let depth: f32 = u_depth.Sample(input.uv).r;
+        let fog_factor: f32 = (fog_far - depth) / (fog_far - fog_near);
+        fog_factor = clamp(fog_factor, 0.0, 1.0);
+        output.color = MixVec4f32(fog_color, output.color, fog_factor);
+    }
+    return output;
+}

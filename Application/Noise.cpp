@@ -1,12 +1,7 @@
-#include "Maths/Vec3.h"
 #include <Noise.h>
 #include <Block.h>
 #include <cstdint>
 #include <random>
-
-constexpr float HEIGHT_COEFF = 255.0f;
-
-constexpr std::uint32_t WATER_LEVEL = 20;
 
 Noise::Noise(const std::uint32_t seed, float frequency, float amplitude, int octaves, float lacunarity, float persistance, int redistribution, float compensatory_factor): m_seed(std::mt19937(seed)), c_frequency(frequency), c_amplitude(amplitude), c_octaves(octaves), c_lacunarity(lacunarity), c_persistance(persistance), c_redistribution(redistribution), c_compensatory_factor(compensatory_factor)
 {

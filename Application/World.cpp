@@ -2,6 +2,7 @@
 
 #include <ScopCore.h>
 
+#include <NoiseCollection.h>
 #include <World.h>
 #include <Utils.h>
 
@@ -24,6 +25,8 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
 		std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
 		m_current_chunk_position = Scop::Vec2i{ x_chunk, z_chunk };
+
+		scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = scene->GetCamera()->GetPosition().y <= WATER_LEVEL;
 
 		if(input.IsKeyPressed(SDL_SCANCODE_G))
 			generation_debounce = true;

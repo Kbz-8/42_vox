@@ -85,6 +85,18 @@ namespace Scop
 			}
 		}, {}
 	);
+
+	static const Scop::ShaderLayout PostProcessShaderLayout(
+		{
+			{ 0,
+				Scop::ShaderSetLayout({ 
+					{ 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER },
+					{ 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER },
+					{ 2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER }
+				})
+			}
+		}, {}
+	);
 }
 
 #endif

@@ -26,6 +26,21 @@ namespace Scop
 				return buffer;
 			}
 
+			inline void Allocate(std::size_t size)
+			{
+				if(m_data != nullptr)
+					FatalError("cannot allocate an already allocated CPU buffer");
+				try
+				{
+					m_data = std::make_shared<std::uint8_t[]>(size);
+					m_size = size;
+				}
+				catch(...)
+				{
+					FatalError("memory allocation for a CPU buffer failed");
+				}
+			}
+
 			inline bool Empty() const { return m_size == 0; }
 
 			[[nodiscard]] inline std::size_t GetSize() const noexcept { return m_size; }

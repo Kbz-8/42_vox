@@ -29,6 +29,8 @@ namespace Scop
 			std::memcpy(buffer.GetData(), &data, buffer.GetSize());
 			scene.GetForwardData().matrices_buffer->SetData(buffer, renderer.GetCurrentFrameIndex());
 		}
+		if(scene.GetDescription().render_post_process_enabled && scene.GetDescription().post_process_shader)
+			scene.GetPostProcessData().data_buffer->SetData(scene.GetPostProcessData().data, renderer.GetCurrentFrameIndex());
 
 		m_passes.Pass(scene, renderer);
 	}

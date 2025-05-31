@@ -5,6 +5,8 @@
 #include <Graphics/Scene.h>
 #include <Maths/Mat4.h>
 
+#include <map>
+
 namespace Scop
 {
 	struct ModelData

@@ -61,6 +61,8 @@ all: $(NAME)
 $(NAME): $(OBJ_DIR) $(BIN_DIR) engine $(OBJS)
 	@printf "$(COLOR)($(_BOLD)100%%$(_RESET)$(COLOR)) $(_RESET)Compiling $(_BOLD)Resources/Fragment.nzsl$(_RESET)\n"
 	@$(NZSLC) --compile=spv Resources/Fragment.nzsl -o Resources/ --optimize --module="ScopEngine/Assets/Shaders/Modules"
+	@printf "$(COLOR)($(_BOLD)100%%$(_RESET)$(COLOR)) $(_RESET)Compiling $(_BOLD)Resources/Screen.nzsl$(_RESET)\n"
+	@$(NZSLC) --compile=spv Resources/PostProcess.nzsl -o Resources/ --optimize --module="ScopEngine/Assets/Shaders/Modules"
 	@printf "Linking $(_BOLD)$(NAME)$(_RESET)\n"
 	@$(CXX) -o $(BIN_DIR)/$(NAME) $(OBJS) $(LDFLAGS)
 	@printf "$(_BOLD)$(NAME)$(_RESET) compiled $(COLOR)$(_BOLD)successfully$(_RESET)\n"
