@@ -2,7 +2,7 @@
 
 #include <ScopCore.h>
 
-#include <NoiseCollection.h>
+#include <Block.h>
 #include <World.h>
 #include <Utils.h>
 
@@ -26,7 +26,11 @@ World::World(Scop::Scene& scene) : m_scene(scene), m_previous_chunk_position(-10
 		std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
 		m_current_chunk_position = Scop::Vec2i{ x_chunk, z_chunk };
 
-		scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = scene->GetCamera()->GetPosition().y <= WATER_LEVEL;
+		if(Scop::NonOwningPtr<Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
+		{
+			Scop::Vec3f camera_pos = scene->GetCamera()->GetPosition();
+			scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = current_chunk->GetBlock(Scop::Vec3i(std::abs(camera_pos.x - m_current_chunk_position.x), camera_pos.y, std::abs(camera_pos.z - m_current_chunk_position.y))) == static_cast<std::uint32_t>(BlockType::Water);
+		}
 
 		if(input.IsKeyPressed(SDL_SCANCODE_G))
 			generation_debounce = true;
