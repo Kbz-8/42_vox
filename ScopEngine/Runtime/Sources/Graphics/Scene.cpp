@@ -6,6 +6,7 @@
 #include <Renderer/ViewerData.h>
 #include <Core/EventBus.h>
 #include <Core/Engine.h>
+#include <Graphics/DogicaTTF.h>
 
 #include <cstring>
 
@@ -14,11 +15,13 @@ namespace Scop
 	Scene::Scene(std::string_view name, SceneDescriptor desc)
 	: m_name(name), m_descriptor(std::move(desc)), p_parent(nullptr)
 	{
+		LoadFont("default", 6.0f);
 	}
 
 	Scene::Scene(std::string_view name, SceneDescriptor desc, NonOwningPtr<Scene> parent)
 	: m_name(name), m_descriptor(std::move(desc)), p_parent(parent)
 	{
+		LoadFont("default", 6.0f);
 	}
 
 	Actor& Scene::CreateActor(Model model) noexcept
@@ -55,6 +58,33 @@ namespace Scop
 	{
 		UUID uuid = UUID();
 		return m_sprites.try_emplace(uuid, uuid, texture).first->second;
+	}
+
+	Text& Scene::CreateText(std::string text) noexcept
+	{
+		UUID uuid = UUID();
+		return m_texts.try_emplace(uuid, uuid, std::move(text), p_bound_font).first->second;
+	}
+
+	Text& Scene::CreateText(std::string_view name, std::string text)
+	{
+		UUID uuid = UUID();
+		return m_texts.try_emplace(uuid, uuid, std::move(text), p_bound_font).first->second;
+	}
+
+	void Scene::LoadFont(std::filesystem::path path, float scale)
+	{
+		std::shared_ptr<Font> font = m_fonts_registry.GetFont(path, scale);
+		if(!font)
+		{
+			if(path.string() == "default")
+				font = std::make_shared<Font>("default", dogica_ttf, scale);
+			else
+				font = std::make_shared<Font>(std::move(path), scale);
+			font->BuildFont();
+			m_fonts_registry.RegisterFont(font);
+		}
+		p_bound_font = font;
 	}
 
 	void Scene::RemoveActor(Actor& actor) noexcept
@@ -175,6 +205,7 @@ namespace Scop
 		m_forward.matrices_buffer->Destroy();
 		if(m_post_process.data_buffer)
 			m_post_process.data_buffer->Destroy();
+		m_fonts_registry.Reset();
 		for(auto& child : m_scene_children)
 			child.Destroy();
 	}

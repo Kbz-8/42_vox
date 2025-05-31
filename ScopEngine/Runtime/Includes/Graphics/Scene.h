@@ -17,6 +17,8 @@
 #include <Graphics/Cameras/Base.h>
 #include <Renderer/Pipelines/Shader.h>
 #include <Renderer/Pipelines/Graphics.h>
+#include <Graphics/Font.h>
+#include <Graphics/Text.h>
 
 namespace Scop
 {
@@ -66,6 +68,11 @@ namespace Scop
 			Sprite& CreateSprite(std::shared_ptr<Texture> texture) noexcept;
 			Sprite& CreateSprite(std::string_view name, std::shared_ptr<Texture> texture);
 
+			Text& CreateText(std::string text) noexcept;
+			Text& CreateText(std::string_view name, std::string text);
+
+			void LoadFont(std::filesystem::path path, float scale);
+
 			void RemoveActor(Actor& actor) noexcept;
 			void RemoveNarrator(Narrator& narrator) noexcept;
 			void RemoveSprite(Sprite& sprite) noexcept;
@@ -79,6 +86,7 @@ namespace Scop
 			[[nodiscard]] inline PostProcessData& GetPostProcessData() noexcept { return m_post_process; }
 			[[nodiscard]] inline const std::unordered_map<std::uint64_t, Actor>& GetActors() const noexcept { return m_actors; }
 			[[nodiscard]] inline const std::unordered_map<std::uint64_t, Sprite>& GetSprites() const noexcept { return m_sprites; }
+			[[nodiscard]] inline const std::unordered_map<std::uint64_t, Text>& GetTexts() const noexcept { return m_texts; }
 			[[nodiscard]] inline const std::string& GetName() const noexcept { return m_name; }
 			[[nodiscard]] inline GraphicPipeline& GetPipeline() noexcept { return m_pipeline; }
 			[[nodiscard]] inline std::shared_ptr<BaseCamera> GetCamera() const { return m_descriptor.camera; }
@@ -101,13 +109,16 @@ namespace Scop
 			PostProcessData m_post_process;
 			DepthImage m_depth;
 			SceneDescriptor m_descriptor;
+			FontRegistry m_fonts_registry;
 			std::shared_ptr<CubeTexture> p_skybox;
 			std::unordered_map<std::uint64_t, Actor> m_actors;
+			std::unordered_map<std::uint64_t, Text> m_texts;
 			std::unordered_map<std::uint64_t, Sprite> m_sprites;
 			std::unordered_map<std::uint64_t, Narrator> m_narrators;
 			std::vector<Scene> m_scene_children;
 			std::string m_name;
 			NonOwningPtr<Scene> p_parent;
+			std::shared_ptr<Font> p_bound_font;
 	};
 }
 

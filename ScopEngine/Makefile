@@ -20,7 +20,7 @@ OBJS = $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
 SPVS = $(addprefix $(SHADER_DIR)/, $(SHADER_SRCS:.nzsl=.spv))
 
 CXX = clang++
-CXXFLAGS = -std=c++20 -I Runtime/Includes -I Runtime/Sources -I ThirdParty/KVF -D KVF_IMPL_VK_NO_PROTOTYPES -D VK_NO_PROTOTYPES -fPIC
+CXXFLAGS = -std=c++20 -I Runtime/Includes -I Runtime/Sources -I ThirdParty/ -I ThirdParty/KVF -D KVF_IMPL_VK_NO_PROTOTYPES -D VK_NO_PROTOTYPES -fPIC
 
 AR = ar rc
 

@@ -98,6 +98,19 @@ namespace Scop
 			RenderCore::Get().vkCmdPushConstants(cmd, m_pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(SpriteData), &sprite_data);
 			sprite.GetMesh()->Draw(cmd, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef());
 		}
+		for(const auto& [_, text] : scene.GetTexts())
+		{
+			SpriteData sprite_data;
+			sprite_data.position = Vec2f{ static_cast<float>(text.GetPosition().x), static_cast<float>(text.GetPosition().y) };
+			sprite_data.color = text.GetColor();
+			if(!text.IsSetInit())
+				const_cast<Text&>(text).UpdateDescriptorSet(*p_texture_set);
+			const_cast<Text&>(text).Bind(frame_index, cmd);
+			std::array<VkDescriptorSet, 2> sets = { p_viewer_data_set->GetSet(frame_index), text.GetSet(frame_index) };
+			RenderCore::Get().vkCmdBindDescriptorSets(cmd, m_pipeline.GetPipelineBindPoint(), m_pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
+			RenderCore::Get().vkCmdPushConstants(cmd, m_pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(SpriteData), &sprite_data);
+			text.GetMesh()->Draw(cmd, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef());
+		}
 		m_pipeline.EndPipeline(cmd);
 	}
 

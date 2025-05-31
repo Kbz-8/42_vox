@@ -13,6 +13,10 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), m_scene(scene), m_prev
 	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "atlas.bmp", map_size), map_size.x, map_size.y);
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
+	scene.LoadFont(GetResourcesPath() / "OpenSans_Regular.ttf", 32.0f);
+	Scop::Text& text = scene.CreateText("FPS:");
+	text.SetPosition(Scop::Vec2ui{ 30, 30 });
+
 	std::thread(&World::GenerateWorld, this).detach();
 
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
