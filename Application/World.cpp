@@ -127,20 +127,18 @@ void World::GenerateWorld()
 		}
 		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
 
-		for(std::int32_t x = m_current_chunk_position.x - RENDER_DISTANCE; x <= m_current_chunk_position.x + RENDER_DISTANCE; x++)
+		Scop::Vec2i x_range{ m_current_chunk_position.x - RENDER_DISTANCE - 1, m_current_chunk_position.x + RENDER_DISTANCE + 1 };
+		Scop::Vec2i z_range{ m_current_chunk_position.y - RENDER_DISTANCE - 1, m_current_chunk_position.y + RENDER_DISTANCE + 1 };
+
+		for(std::int32_t x = x_range.x; x <= x_range.y; x++)
 		{
-			for(std::int32_t z = m_current_chunk_position.y - RENDER_DISTANCE; z <= m_current_chunk_position.y + RENDER_DISTANCE; z++)
+			for(std::int32_t z = z_range.x; z <= z_range.y; z++)
 			{
 				QUIT_CHECK();
 				auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
-				if(res.second)
-				{
-					if(!res.first->second.GetActor())
-					{
-						res.first->second.GenerateChunk();
-						mesh_generation_queue.push(std::ref(res.first->second));
-					}
-				}
+				res.first->second.GenerateChunk();
+				if(!res.first->second.GetActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
+					mesh_generation_queue.push(std::ref(res.first->second));
 			}
 		}
 		while(!mesh_generation_queue.empty())
