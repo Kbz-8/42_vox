@@ -23,6 +23,8 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> NoiseCollection::GetBlocks(Scop::V
 
 	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
 
+	data = c_biomecollection.GetBiomeBlocks("grassland", height, pos);
+	return data;
 	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
 	{
 		// const std::uint32_t value = Perlin3D(pos.x, y, pos.y);
@@ -59,5 +61,9 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> NoiseCollection::GetBlocks(Scop::V
 		if(data[y] == static_cast<std::uint32_t>(BlockType::Air))
 			data[y] = static_cast<std::uint32_t>(BlockType::Water);
 	}
+	const std::uint32_t biome_value = m_collection["biomes"]->Perlin2D(pos.x, pos.y);
+
+	if (biome_value > 20)
+		data[240] = static_cast<std::uint32_t>(BlockType::Stone);
 	return data;
 }

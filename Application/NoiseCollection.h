@@ -1,6 +1,7 @@
 #ifndef NOISECOLLECTION_H
-# define NOISECOLLECTION_H
+#  define NOISECOLLECTION_H
 
+#include <BiomeCollection.h>
 #include <Noise.h>
 #include <cstdint>
 #include <memory>
@@ -13,7 +14,7 @@ constexpr std::uint32_t WATER_LEVEL = 20;
 class NoiseCollection
 {
 	public:
-		inline NoiseCollection(const std::uint32_t seed)
+		inline NoiseCollection(const std::uint32_t seed): c_biomecollection()
 		{
 			m_collection.emplace("terrain", std::make_unique<Noise>(seed, // seed
 																	0.045f,
@@ -33,6 +34,15 @@ class NoiseCollection
 																	3,
 																	1.0f
 																	)); // TODO !!!!!!
+			m_collection.emplace("biomes", std::make_unique<Noise>(seed,
+																	0.05f,
+																	1.0f,
+																	1,
+																	2.0f,
+																	0.5f,
+																	1,
+																	1.0f
+																	));
 		}
 
 		Noise* GetNoise(const std::string& key) const;
@@ -43,6 +53,7 @@ class NoiseCollection
 	
 	private:
 		std::unordered_map<std::string, std::unique_ptr<Noise>> m_collection;
+		const BiomeCollection c_biomecollection;
 };
 
 #endif

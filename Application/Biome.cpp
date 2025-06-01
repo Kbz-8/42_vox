@@ -1,8 +1,7 @@
 
-#include <Biome.h>
+#include "Biome.h"
 #include "Block.h"
 #include "Chunk.h"
-#include "Maths/Vec3.h"
 #include <utility>
 
 Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), c_blockmap(blocks)
@@ -27,8 +26,6 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 	{
 		if(y > std::min(height, CHUNK_SIZE.y) - 2)
 		{
-			data[y] = static_cast<std::uint32_t>(BlockType::Dirt);
-			continue;
 			const auto& [placementType, blockTypes] = it->second;
 			switch (static_cast<std::uint8_t>(placementType))
 			{
