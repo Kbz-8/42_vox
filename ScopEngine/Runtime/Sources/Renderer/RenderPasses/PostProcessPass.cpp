@@ -32,7 +32,7 @@ namespace Scop
 		if(!m_render_texture.IsInit())
 		{
 			auto extent = kvfGetSwapchainImagesSize(renderer.GetSwapchain().Get());
-			m_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM, false, "scop_post_process_render_texture", true);
+			m_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM, false, "scop_post_process_render_texture", false);
 		}
 
 		if(m_pipeline.GetPipeline() == VK_NULL_HANDLE)

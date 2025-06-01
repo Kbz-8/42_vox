@@ -24,7 +24,7 @@ namespace Scop
 		if(!m_main_render_texture.IsInit())
 		{
 			auto extent = kvfGetSwapchainImagesSize(renderer.GetSwapchain().Get());
-			m_main_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM, false, "scop_main_render_texture", true);
+			m_main_render_texture.Init({}, extent.width, extent.height, VK_FORMAT_R8G8B8A8_UNORM, false, "scop_main_render_texture", false);
 		}
 
 		scene.GetDepth().Clear(renderer.GetActiveCommandBuffer(), {});
