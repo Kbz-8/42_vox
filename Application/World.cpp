@@ -24,6 +24,7 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), m_fps_counter(), m_sce
 		static bool generate = true;
 		static bool generation_debounce = false;
 		static bool wireframe_debounce = false;
+		static PostProcessData post_process_data;
 
 		m_fps_counter.Update();
 		if(m_fps_counter.GetFPSCount() != m_last_fps_count)
@@ -47,8 +48,12 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), m_fps_counter(), m_sce
 			camera_pos.z %= CHUNK_SIZE.z;
 			camera_pos.x += CHUNK_SIZE.x;
 			camera_pos.z += CHUNK_SIZE.z;
-			scene->GetPostProcessData().data.GetDataAs<std::int32_t>()[0] = current_chunk->GetBlock(Scop::Vec3i(camera_pos.x % CHUNK_SIZE.x, camera_pos.y, camera_pos.z % CHUNK_SIZE.z)) == static_cast<std::uint32_t>(BlockType::Water);
+			post_process_data.underwater = current_chunk->GetBlock(Scop::Vec3i(camera_pos.x % CHUNK_SIZE.x, camera_pos.y, camera_pos.z % CHUNK_SIZE.z)) == static_cast<std::uint32_t>(BlockType::Water);
 		}
+
+		post_process_data.inv_res = Scop::Vec2f{ 1.0f / Scop::ScopEngine::Get().GetWindow().GetWidth(), 1.0f / Scop::ScopEngine::Get().GetWindow().GetHeight() };
+
+		std::memcpy(scene->GetPostProcessData().data.GetDataAs<PostProcessData>(), &post_process_data, sizeof(PostProcessData));
 
 		if(input.IsKeyPressed(SDL_SCANCODE_G))
 			generation_debounce = true;

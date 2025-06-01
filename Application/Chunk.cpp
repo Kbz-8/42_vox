@@ -73,28 +73,45 @@ void Chunk::GenerateMesh()
 				if(type == BlockType::Air)
 					continue;
 
-				bool is_water = type == BlockType::Water;
+				bool is_water = (type == BlockType::Water);
 				std::vector<Scop::Vertex>& mesh_data = (is_water ? m_water_mesh_data : m_mesh_data);
 				std::vector<std::uint32_t>& index_data = (is_water ? m_water_mesh_index_data : m_mesh_index_data);
 				std::uint32_t& offset = (is_water ? water_offset : mesh_offset);
 
-				Scop::Vec4f color = is_water ? Scop::Vec4f{ 0.3f, 0.5f, 0.7f, 0.9f } : Scop::Vec4f{ 1.0f };
-
+				Scop::Vec4f base_color = is_water ? Scop::Vec4f{ 0.3f, 0.5f, 0.5f, 0.8f } : Scop::Vec4f{ 1.0f };
 				std::uint32_t invalid_limit = is_water ? static_cast<std::uint32_t>(BlockType::Air) : static_cast<std::uint32_t>(BlockType::Water);
 
 				if(GetBlock(Scop::Vec3i(x, y, z + 1)) <= invalid_limit)
 				{
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 3);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 3);
 					index_data.push_back(offset + 1);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[0].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[0].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[0].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[1].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[1].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[1].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[2].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[2].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[2].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[3].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[3].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[3].uv)));
+					for(std::uint32_t i = 0; i < 4; i++)
+					{
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int u = static_cast<int>(BLOCK_MESH[i].position.x);
+							int v = static_cast<int>(BLOCK_MESH[i].position.y);
+							bool occ1 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + v, z + 1)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x + u, y + (v == 0 ? -1 : 1), z + 1)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + (v == 0 ? -1 : 1), z + 1)) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}
@@ -106,12 +123,32 @@ void Chunk::GenerateMesh()
 					index_data.push_back(offset + 1);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 1);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[4].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[4].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[4].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[5].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[5].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[5].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[6].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[6].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[6].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[7].position  + Scop::Vec3f(x, y, z), color, BLOCK_MESH[7].normal,  GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[7].uv)));
+					for(std::uint32_t i = 4; i < 8; i++)
+					{
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int local_index = i - 4;
+							int u = static_cast<int>(BLOCK_MESH[i].position.x);
+							int v = static_cast<int>(BLOCK_MESH[i].position.y);
+
+							bool occ1 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + v, z - 1)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x + u, y + (v == 0 ? -1 : 1), z - 1)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + (v == 0 ? -1 : 1), z - 1)) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}
@@ -119,16 +156,38 @@ void Chunk::GenerateMesh()
 				if(GetBlock(Scop::Vec3i(x, y + 1, z)) <= invalid_limit)
 				{
 					index_data.push_back(offset + 1);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 1);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 3);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[8].position  + Scop::Vec3f(x, is_water ? static_cast<float>(y) - 0.2f : y, z), color, BLOCK_MESH[0].normal,  GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[8].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[9].position  + Scop::Vec3f(x, is_water ? static_cast<float>(y) - 0.2f : y, z), color, BLOCK_MESH[9].normal,  GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[9].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[10].position + Scop::Vec3f(x, is_water ? static_cast<float>(y) - 0.2f : y, z), color, BLOCK_MESH[10].normal, GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[10].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[11].position + Scop::Vec3f(x, is_water ? static_cast<float>(y) - 0.2f : y, z), color, BLOCK_MESH[11].normal, GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[11].uv)));
+					for(std::uint32_t i = 8; i < 12; i++)
+					{
+						float block_top_y = is_water ? static_cast<float>(y) - 0.2f : static_cast<float>(y);
+
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int local_index = i - 8;
+							int u = static_cast<int>(BLOCK_MESH[i].position.x);
+							int v = static_cast<int>(BLOCK_MESH[i].position.z);
+
+							bool occ1 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + 1, z + v)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x + u, y + 1, z + (v == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y + 1, z + (v == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, block_top_y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}
@@ -137,15 +196,35 @@ void Chunk::GenerateMesh()
 				{
 					index_data.push_back(offset + 3);
 					index_data.push_back(offset + 1);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 3);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 2);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[12].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[12].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[12].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[13].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[13].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[13].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[14].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[14].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[14].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[15].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[15].normal, GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[15].uv)));
+					for(std::uint32_t i = 12; i < 16; i++)
+					{
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int local_index = i - 12;
+							int u = static_cast<int>(BLOCK_MESH[i].position.x);
+							int v = static_cast<int>(BLOCK_MESH[i].position.z);
+
+							bool occ1 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y - 1, z + v)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x + u, y - 1, z + (v == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x + (u == 0 ? -1 : 1), y - 1,z  + (v == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Bottom) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}
@@ -157,29 +236,68 @@ void Chunk::GenerateMesh()
 					index_data.push_back(offset + 1);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 1);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[16].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[16].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[16].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[17].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[17].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[17].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[18].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[18].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[18].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[19].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[19].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[19].uv)));
+					for(std::uint32_t i = 16; i < 20; i++)
+					{
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int local_index = i - 16;
+							int u = static_cast<int>(BLOCK_MESH[i].position.z);
+							int v = static_cast<int>(BLOCK_MESH[i].position.y);
+
+							bool occ1 = (GetBlock(Scop::Vec3i(x + 1, y + v, z + (u == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x + 1, y + (v == 0 ? -1 : 1), z + u)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x + 1, y + (v == 0 ? -1 : 1), z + (u == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}
 
 				if(GetBlock(Scop::Vec3i(x - 1, y, z)) <= invalid_limit)
 				{
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 2);
 					index_data.push_back(offset + 3);
-					index_data.push_back(offset);
+					index_data.push_back(offset + 0);
 					index_data.push_back(offset + 3);
 					index_data.push_back(offset + 1);
 
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[20].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[20].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[20].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[21].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[21].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[21].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[22].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[22].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[22].uv)));
-					mesh_data.push_back(Scop::Vertex(BLOCK_MESH[23].position + Scop::Vec3f(x, y, z), color, BLOCK_MESH[23].normal, GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[23].uv)));
+					for(std::uint32_t i = 20; i < 24; i++)
+					{
+						Scop::Vec4f vertex_color;
+						if(!is_water)
+						{
+							int local_index = i - 20;
+							int u = static_cast<int>(BLOCK_MESH[i].position.z);
+							int v = static_cast<int>(BLOCK_MESH[i].position.y);
+
+							bool occ1 = (GetBlock(Scop::Vec3i(x - 1, y + v, z + (u == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ2 = (GetBlock(Scop::Vec3i(x - 1, y + (v == 0 ? -1 : 1), z + u)) != static_cast<std::uint32_t>(BlockType::Air));
+							bool occ3 = (GetBlock(Scop::Vec3i(x - 1, y + (v == 0 ? -1 : 1), z + (u == 0 ? -1 : 1))) != static_cast<std::uint32_t>(BlockType::Air));
+
+							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
+							float ao = 1.0f - (occ_count * 0.2f);
+							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
+						}
+						else
+							vertex_color = base_color;
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
+						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
+					}
 
 					offset += 4;
 				}

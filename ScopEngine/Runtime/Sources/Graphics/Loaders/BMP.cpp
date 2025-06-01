@@ -9,13 +9,13 @@ namespace Scop
 	{
 		if(path.extension() != ".bmp")
 		{
-			Error("BMP loader : not a BMP file, %", path);
+			Error("BMP loader: not a BMP file, %", path);
 			return {};
 		}
 		std::ifstream file(path, std::ios::binary);
 		if(!file.is_open())
 		{
-			Error("BMP loader : could not open %", path);
+			Error("BMP loader: could not open %", path);
 			return {};
 		}
 		std::int16_t bpp;
@@ -26,7 +26,7 @@ namespace Scop
 		file.read(reinterpret_cast<char*>(&bpp), sizeof(bpp));
 		file.seekg(54, std::ios_base::beg);
 		if(bpp != 24)
-			Warning("BMP loader : warning while loadeing %, cannot handle yet different color palette sizes", path);
+			Warning("BMP loader: warning while loadeing %, cannot handle yet different color palette sizes", path);
 		CPUBuffer buffer{ dimensions.x * dimensions.y * 4 };
 		for(std::size_t i = 0; i <= buffer.GetSize(); i += 4)
 		{

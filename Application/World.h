@@ -22,6 +22,13 @@ enum class GenerationState: std::uint8_t
 	Finished,
 };
 
+struct PostProcessData
+{
+	Scop::Vec2f inv_res;
+	std::int32_t underwater;
+};
+
+
 class World
 {
 	public:

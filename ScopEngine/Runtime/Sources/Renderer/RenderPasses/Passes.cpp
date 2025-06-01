@@ -35,15 +35,19 @@ namespace Scop
 			m_forward.Pass(scene, renderer, m_main_render_texture);
 		if(scene.GetDescription().render_skybox_enabled)
 			m_skybox.Pass(scene, renderer, m_main_render_texture);
-		if(scene.GetDescription().render_2D_enabled)
-			m_2Dpass.Pass(scene, renderer, m_main_render_texture);
 		if(scene.GetDescription().render_post_process_enabled && scene.GetDescription().post_process_shader)
 		{
 			m_post_process.Pass(scene, renderer, m_main_render_texture);
+			if(scene.GetDescription().render_2D_enabled)
+				m_2Dpass.Pass(scene, renderer, m_post_process.GetProcessTexture());
 			m_final.Pass(scene, renderer, m_post_process.GetProcessTexture());
 		}
 		else
+		{
+			if(scene.GetDescription().render_2D_enabled)
+				m_2Dpass.Pass(scene, renderer, m_main_render_texture);
 			m_final.Pass(scene, renderer, m_main_render_texture);
+		}
 	}
 
 	void RenderPasses::Destroy()
