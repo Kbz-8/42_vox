@@ -37,22 +37,22 @@ namespace Scop
 			~Sprite();
 
 		private:
-			[[nodiscard]] inline bool IsSetInit() const noexcept { return m_set.IsInit(); }
-			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return m_set.GetSet(frame_index); }
+			[[nodiscard]] inline bool IsSetInit() const noexcept { return p_set && p_set->IsInit(); }
+			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return p_set->GetSet(frame_index); }
 
-			inline void UpdateDescriptorSet(const DescriptorSet& set)
+			inline void UpdateDescriptorSet(std::shared_ptr<DescriptorSet> set)
 			{
-				m_set = set.Duplicate();
+				p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(set->GetShaderLayout(), set->GetShaderType());
 			}
 
 			inline void Bind(std::size_t frame_index, VkCommandBuffer cmd)
 			{
-				m_set.SetImage(frame_index, 0, *p_texture);
-				m_set.Update(frame_index, cmd);
+				p_set->SetImage(frame_index, 0, *p_texture);
+				p_set->Update(frame_index, cmd);
 			}
 
 		private:
-			DescriptorSet m_set;
+			std::shared_ptr<DescriptorSet> p_set;
 			std::shared_ptr<Texture> p_texture;
 			std::shared_ptr<class SpriteScript> p_script;
 			std::shared_ptr<Mesh> p_mesh;

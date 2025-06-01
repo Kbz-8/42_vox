@@ -29,20 +29,20 @@ namespace Scop
 			virtual ~Text() = default;
 
 		private:
-			[[nodiscard]] inline bool IsSetInit() const noexcept { return m_set.IsInit(); }
-			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return m_set.GetSet(frame_index); }
-			inline void UpdateDescriptorSet(const DescriptorSet& set)
+			[[nodiscard]] inline bool IsSetInit() const noexcept { return p_set && p_set->IsInit(); }
+			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return p_set->GetSet(frame_index); }
+			inline void UpdateDescriptorSet(std::shared_ptr<DescriptorSet> set)
 			{
-				m_set = set.Duplicate();
+				p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(set->GetShaderLayout(), set->GetShaderType());
 			}
 			inline void Bind(std::size_t frame_index, VkCommandBuffer cmd)
 			{
-				m_set.SetImage(frame_index, 0, const_cast<Texture&>(p_font->GetTexture()));
-				m_set.Update(frame_index, cmd);
+				p_set->SetImage(frame_index, 0, const_cast<Texture&>(p_font->GetTexture()));
+				p_set->Update(frame_index, cmd);
 			}
 
 		private:
-			DescriptorSet m_set;
+			std::shared_ptr<DescriptorSet> p_set;
 			std::shared_ptr<Mesh> p_mesh;
 			std::shared_ptr<Font> p_font;
 			std::string m_text;

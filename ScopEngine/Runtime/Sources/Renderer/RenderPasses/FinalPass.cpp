@@ -31,7 +31,7 @@ namespace Scop
 		};
 		EventBus::RegisterListener({ functor, "__ScopFinalPass" });
 
-		p_set = std::make_shared<DescriptorSet>(p_fragment_shader->GetShaderLayout().set_layouts[0].second, p_fragment_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+		p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
 	}
 
 	void FinalPass::Pass(Scene& scene, Renderer& renderer, Texture& render_target)

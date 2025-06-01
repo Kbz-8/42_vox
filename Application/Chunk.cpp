@@ -290,6 +290,7 @@ void Chunk::GenerateMesh()
 
 							int occ_count = (occ1 ? 1 : 0) + (occ2 ? 1 : 0) + (occ3 ? 1 : 0);
 							float ao = 1.0f - (occ_count * 0.2f);
+
 							vertex_color = Scop::Vec4f(Scop::Vec3f(base_color) * ao, 1.0f);
 						}
 						else

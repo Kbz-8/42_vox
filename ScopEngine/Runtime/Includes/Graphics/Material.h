@@ -36,8 +36,8 @@ namespace Scop
 			~Material() { m_data_buffer.Destroy(); }
 
 		private:
-			[[nodiscard]] inline bool IsSetInit() const noexcept { return m_set.IsInit(); }
-			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return m_set.GetSet(frame_index); }
+			[[nodiscard]] inline bool IsSetInit() const noexcept { return p_set && p_set->IsInit(); }
+			[[nodiscard]] inline VkDescriptorSet GetSet(std::size_t frame_index) const noexcept { return p_set->GetSet(frame_index); }
 
 			inline void SetupEventListener()
 			{
@@ -49,18 +49,18 @@ namespace Scop
 				EventBus::RegisterListener({ functor, "__ScopMaterial" + std::to_string(reinterpret_cast<std::uintptr_t>(this)) });
 			}
 
-			inline void UpdateDescriptorSet(const DescriptorSet& set)
+			inline void UpdateDescriptorSet(std::shared_ptr<DescriptorSet> set)
 			{
-				m_set = set.Duplicate();
+				p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(set->GetShaderLayout(), set->GetShaderType());
 			}
 
 			inline void Bind(std::size_t frame_index, VkCommandBuffer cmd)
 			{
 				if(m_have_been_updated_this_frame)
 					return;
-				m_set.SetImage(frame_index, 0, *m_textures.albedo);
-				m_set.SetUniformBuffer(frame_index, 1, m_data_buffer.Get(frame_index));
-				m_set.Update(frame_index, cmd);
+				p_set->SetImage(frame_index, 0, *m_textures.albedo);
+				p_set->SetUniformBuffer(frame_index, 1, m_data_buffer.Get(frame_index));
+				p_set->Update(frame_index, cmd);
 
 				static CPUBuffer buffer(sizeof(MaterialData));
 				std::memcpy(buffer.GetData(), &m_data, buffer.GetSize());
@@ -73,7 +73,7 @@ namespace Scop
 			UniformBuffer m_data_buffer;
 			MaterialTextures m_textures;
 			MaterialData m_data;
-			DescriptorSet m_set;
+			std::shared_ptr<DescriptorSet> p_set;
 			bool m_have_been_updated_this_frame = false;
 	};
 }

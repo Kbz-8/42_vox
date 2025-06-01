@@ -65,7 +65,7 @@ namespace Scop
 			{
 				auto model_data = setup_model(actor);
 				RenderCore::Get().vkCmdPushConstants(cmd, pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ModelData), &model_data);
-				actor.GetModel().Draw(cmd, *data.matrices_set, pipeline, *data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
+				actor.GetModel().Draw(cmd, data.matrices_set, pipeline, data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
 			}
 			else
 			{
@@ -79,7 +79,7 @@ namespace Scop
 				continue;
 			auto model_data = setup_model(it->second);
 			RenderCore::Get().vkCmdPushConstants(cmd, pipeline.GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ModelData), &model_data);
-			it->second.GetModel().Draw(cmd, *data.matrices_set, pipeline, *data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
+			it->second.GetModel().Draw(cmd, data.matrices_set, pipeline, data.albedo_set, renderer.GetDrawCallsCounterRef(), renderer.GetPolygonDrawnCounterRef(), renderer.GetCurrentFrameIndex());
 		}
 		pipeline.EndPipeline(cmd);
 	}
