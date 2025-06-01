@@ -18,12 +18,13 @@ class Biome
 {
 
 	public:
-		Biome(std::uint32_t filler, std::uint32_t water_level, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks);
+		Biome(std::uint32_t filler, std::uint32_t water_level, std::uint32_t water_content, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks);
 		~Biome() = default;
 		const std::array<std::uint32_t, CHUNK_SIZE.y> GetBiomeBlocks(const std::uint32_t height, Scop::Vec2i pos);	
 	private:
 		const std::uint32_t filler;
 		const std::uint32_t water_level;
+		const std::uint32_t water_content;
 		const std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> c_blockmap;
 };
 

@@ -18,7 +18,9 @@ class BiomeCollection
 			m_collection.emplace("grassland", std::make_unique<Biome>(
                         static_cast<std::uint32_t>(BlockType::Stone),
                         20,
+						static_cast<std::uint32_t>(BlockType::Water),
                         std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>>{
+                            {17, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Dirt}}},
                             {23, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Sand}}},
 							{125, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Grass}}},
                             {132, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::PseudoRandom, std::vector<BlockType>{BlockType::SnowyGrass, BlockType::Grass}}},
@@ -29,7 +31,10 @@ class BiomeCollection
 			m_collection.emplace("tundra", std::make_unique<Biome>(
                         static_cast<std::uint32_t>(BlockType::Stone),
                         20,
+						static_cast<std::uint32_t>(BlockType::Water),
                         std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>>{
+                            {17, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Dirt}}},
+                            {20, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Ice}}},
                             {23, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Snow}}},
                             {120, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::SnowyGrass}}},
                             {140, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::PseudoRandom, std::vector<BlockType>{BlockType::Snow, BlockType::SnowyGrass}}},
@@ -39,6 +44,7 @@ class BiomeCollection
 			m_collection.emplace("desert", std::make_unique<Biome>(
                         static_cast<std::uint32_t>(BlockType::Stone),
                         20,
+						static_cast<std::uint32_t>(BlockType::Water),
                         std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>>{
                             {255, std::pair<BlockPlacementType, std::vector<BlockType>>{BlockPlacementType::Simple, std::vector<BlockType>{BlockType::Sand}}}
                         }

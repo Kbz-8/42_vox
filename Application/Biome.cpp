@@ -5,7 +5,7 @@
 #include "NoiseCollection.h"
 #include <utility>
 
-Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), c_blockmap(blocks)
+Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::uint32_t water_content, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), water_content(water_content), c_blockmap(blocks)
 {
 	for (const auto& [height, BlockPlacement] : blocks)
 	{
@@ -21,7 +21,7 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 
 	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
 	std::fill(data.begin(), data.begin() + ARTIFICIAL_ELEVATION, filler);
-	std::fill(data.begin() + ARTIFICIAL_ELEVATION, data.begin() + ARTIFICIAL_ELEVATION + water_level, static_cast<std::uint32_t>(BlockType::Water));
+	std::fill(data.begin() + ARTIFICIAL_ELEVATION, data.begin() + ARTIFICIAL_ELEVATION + water_level, water_content);
 	auto it = c_blockmap.lower_bound(height - ARTIFICIAL_ELEVATION);
 
 	if (it == c_blockmap.end())
