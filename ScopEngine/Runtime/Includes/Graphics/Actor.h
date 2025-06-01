@@ -15,6 +15,13 @@ namespace Scop
 		friend Scene;
 
 		public:
+			struct CustomPipeline
+			{
+				std::shared_ptr<Shader> shader;
+				CPUBuffer data;
+			};
+
+		public:
 			Actor();
 			Actor(Model model);
 			Actor(std::uint64_t uuid, Model model);

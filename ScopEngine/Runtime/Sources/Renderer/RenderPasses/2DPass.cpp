@@ -49,8 +49,8 @@ namespace Scop
 		};
 		EventBus::RegisterListener({ functor, "__ScopRender2DPass" });
 
-		p_viewer_data_set = std::make_shared<DescriptorSet>(p_vertex_shader->GetShaderLayout().set_layouts[0].second, p_vertex_shader->GetPipelineLayout().set_layouts[0], ShaderType::Vertex);
-		p_texture_set = std::make_shared<DescriptorSet>(p_fragment_shader->GetShaderLayout().set_layouts[0].second, p_fragment_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+		p_viewer_data_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_vertex_shader->GetShaderLayout().set_layouts[0].second,ShaderType::Vertex);
+		p_texture_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
 
 		p_viewer_data_buffer = std::make_shared<UniformBuffer>();
 		p_viewer_data_buffer->Init(sizeof(ViewerData2D));
@@ -91,7 +91,7 @@ namespace Scop
 			sprite_data.position = Vec2f{ static_cast<float>(sprite.GetPosition().x), static_cast<float>(sprite.GetPosition().y) };
 			sprite_data.color = sprite.GetColor();
 			if(!sprite.IsSetInit())
-				const_cast<Sprite&>(sprite).UpdateDescriptorSet(*p_texture_set);
+				const_cast<Sprite&>(sprite).UpdateDescriptorSet(p_texture_set);
 			const_cast<Sprite&>(sprite).Bind(frame_index, cmd);
 			std::array<VkDescriptorSet, 2> sets = { p_viewer_data_set->GetSet(frame_index), sprite.GetSet(frame_index) };
 			RenderCore::Get().vkCmdBindDescriptorSets(cmd, m_pipeline.GetPipelineBindPoint(), m_pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
@@ -104,7 +104,7 @@ namespace Scop
 			sprite_data.position = Vec2f{ static_cast<float>(text.GetPosition().x), static_cast<float>(text.GetPosition().y) };
 			sprite_data.color = text.GetColor();
 			if(!text.IsSetInit())
-				const_cast<Text&>(text).UpdateDescriptorSet(*p_texture_set);
+				const_cast<Text&>(text).UpdateDescriptorSet(p_texture_set);
 			const_cast<Text&>(text).Bind(frame_index, cmd);
 			std::array<VkDescriptorSet, 2> sets = { p_viewer_data_set->GetSet(frame_index), text.GetSet(frame_index) };
 			RenderCore::Get().vkCmdBindDescriptorSets(cmd, m_pipeline.GetPipelineBindPoint(), m_pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);

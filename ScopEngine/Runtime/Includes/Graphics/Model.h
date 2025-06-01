@@ -30,7 +30,7 @@ namespace Scop
 			[[nodiscard]] inline Vec3f GetCenter() const noexcept { return m_center; }
 			[[nodiscard]] inline std::shared_ptr<Mesh> GetMesh() const { return p_mesh; }
 
-			void Draw(VkCommandBuffer cmd, const DescriptorSet& matrices_set, const class GraphicPipeline& pipeline, DescriptorSet& set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const;
+			void Draw(VkCommandBuffer cmd, std::shared_ptr<DescriptorSet> matrices_set, const class GraphicPipeline& pipeline, std::shared_ptr<DescriptorSet> set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const;
 
 			~Model() = default;
 

@@ -6,6 +6,7 @@
 
 #include <Core/Engine.h>
 #include <Platform/Window.h>
+#include <Renderer/Descriptor.h>
 #include <Renderer/RenderCore.h>
 #include <Renderer/Pipelines/Shader.h>
 #include <Renderer/Vulkan/VulkanLoader.h>
@@ -119,6 +120,8 @@ namespace Scop
 		vkDestroySurfaceKHR(m_instance, surface, nullptr);
 
 		m_allocator.AttachToDevice(m_device, m_physical_device);
+
+		p_descriptor_pool_manager = std::make_unique<DescriptorPoolManager>();
 
 		ShaderLayout vertex_shader_layout(
 			{
@@ -258,6 +261,8 @@ namespace Scop
 		if(s_instance == nullptr)
 			return;
 		WaitDeviceIdle();
+		p_descriptor_pool_manager->Destroy();
+		p_descriptor_pool_manager.reset();
 		m_allocator.DetachFromDevice();
 		for(auto shader: m_internal_shaders)
 			shader->Destroy();

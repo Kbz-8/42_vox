@@ -14,6 +14,8 @@ namespace Scop
 		std::vector<std::pair<int, VkDescriptorType> > binds;
 
 		ShaderSetLayout(std::vector<std::pair<int, VkDescriptorType> > b) : binds(std::move(b)) {}
+
+		inline bool operator==(const ShaderSetLayout& rhs) const { return binds == rhs.binds; }
 	};
 
 	struct ShaderPushConstantLayout

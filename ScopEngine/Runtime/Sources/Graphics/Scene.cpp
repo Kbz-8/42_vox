@@ -165,7 +165,7 @@ namespace Scop
 
 		if(m_descriptor.post_process_shader)
 		{
-			m_post_process.set = std::make_shared<DescriptorSet>(m_descriptor.post_process_shader->GetShaderLayout().set_layouts[0].second, m_descriptor.post_process_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+			m_post_process.set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(m_descriptor.post_process_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
 			m_post_process.data_buffer = std::make_shared<UniformBuffer>();
 			m_post_process.data_buffer->Init(m_descriptor.post_process_data_size, m_name + "_post_process_data_buffer");
 		}
@@ -178,13 +178,13 @@ namespace Scop
 		m_forward.matrices_buffer = std::make_shared<UniformBuffer>();
 		m_forward.matrices_buffer->Init(sizeof(ViewerData), m_name + "_matrice_buffer");
 
-		m_forward.matrices_set = std::make_shared<DescriptorSet>(vertex_shader->GetShaderLayout().set_layouts[0].second, vertex_shader->GetPipelineLayout().set_layouts[0], ShaderType::Vertex);
+		m_forward.matrices_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(vertex_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Vertex);
 		for(std::size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 		{
 			m_forward.matrices_set->SetUniformBuffer(i, 0, m_forward.matrices_buffer->Get(i));
 			m_forward.matrices_set->Update(i);
 		}
-		m_forward.albedo_set = std::make_shared<DescriptorSet>(m_descriptor.fragment_shader->GetShaderLayout().set_layouts[0].second, m_descriptor.fragment_shader->GetPipelineLayout().set_layouts[0], ShaderType::Fragment);
+		m_forward.albedo_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(m_descriptor.fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
 
 		for(auto& child : m_scene_children)
 			child.Init(renderer);

@@ -25,7 +25,7 @@ namespace Scop
 		m_materials.back() = s_default_material;
 	}
 
-	void Model::Draw(VkCommandBuffer cmd, const DescriptorSet& matrices_set, const GraphicPipeline& pipeline, DescriptorSet& set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const
+	void Model::Draw(VkCommandBuffer cmd, std::shared_ptr<DescriptorSet> matrices_set, const GraphicPipeline& pipeline, std::shared_ptr<DescriptorSet> set, std::size_t& drawcalls, std::size_t& polygondrawn, std::size_t frame_index) const
 	{
 		if(!p_mesh)
 			return;
@@ -39,7 +39,7 @@ namespace Scop
 			if(!material->IsSetInit())
 				material->UpdateDescriptorSet(set);
 			material->Bind(frame_index, cmd);
-			std::array<VkDescriptorSet, 2> sets = { matrices_set.GetSet(frame_index), material->GetSet(frame_index) };
+			std::array<VkDescriptorSet, 2> sets = { matrices_set->GetSet(frame_index), material->GetSet(frame_index) };
 			RenderCore::Get().vkCmdBindDescriptorSets(cmd, pipeline.GetPipelineBindPoint(), pipeline.GetPipelineLayout(), 0, sets.size(), sets.data(), 0, nullptr);
 			p_mesh->Draw(cmd, drawcalls, polygondrawn, i);
 		}

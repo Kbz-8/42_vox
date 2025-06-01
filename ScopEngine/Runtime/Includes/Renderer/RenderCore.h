@@ -35,6 +35,7 @@ namespace Scop
 			[[nodiscard]] inline VkPhysicalDevice GetPhysicalDevice() const noexcept { return m_physical_device; }
 			[[nodiscard]] inline DeviceAllocator& GetAllocator() noexcept { return m_allocator; }
 			[[nodiscard]] inline bool StackSubmits() const noexcept { return m_stack_submits; }
+			[[nodiscard]] inline class DescriptorPoolManager& GetDescriptorPoolManager() noexcept { return *p_descriptor_pool_manager; }
 
 			[[nodiscard]] inline std::shared_ptr<class Shader> GetDefaultVertexShader() const { return m_internal_shaders[DEFAULT_VERTEX_SHADER_ID]; }
 			[[nodiscard]] inline std::shared_ptr<class Shader> GetBasicFragmentShader() const { return m_internal_shaders[BASIC_FRAGMENT_SHADER_ID]; }
@@ -71,6 +72,7 @@ namespace Scop
 			VkInstance m_instance = VK_NULL_HANDLE;
 			VkDevice m_device = VK_NULL_HANDLE;
 			VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
+			std::unique_ptr<class DescriptorPoolManager> p_descriptor_pool_manager;
 			bool m_stack_submits = false;
 	};
 }
