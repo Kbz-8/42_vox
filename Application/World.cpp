@@ -6,14 +6,14 @@
 #include <World.h>
 #include <Utils.h>
 
-World::World(Scop::Scene& scene) : m_noisecollection(42), m_scene(scene), m_previous_chunk_position(-1000, 10000)
+World::World(Scop::Scene& scene) : m_noisecollection(42), m_fps_counter(), m_scene(scene), m_previous_chunk_position(-1000, 10000)
 {
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
 	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "atlas.bmp", map_size), map_size.x, map_size.y);
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
-	scene.LoadFont(GetResourcesPath() / "OpenSans_Regular.ttf", 32.0f);
+	scene.LoadFont(GetResourcesPath() / "OpenSans_Bold.ttf", 32.0f);
 	Scop::Text& text = scene.CreateText("FPS:");
 	text.SetPosition(Scop::Vec2ui{ 30, 30 });
 
@@ -24,6 +24,16 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), m_scene(scene), m_prev
 		static bool generate = true;
 		static bool generation_debounce = false;
 		static bool wireframe_debounce = false;
+
+		m_fps_counter.Update();
+		if(m_fps_counter.GetFPSCount() != m_last_fps_count)
+		{
+			m_last_fps_count = m_fps_counter.GetFPSCount();
+			if(p_fps_text)
+				m_scene.RemoveText(*p_fps_text);
+			p_fps_text = &m_scene.CreateText(std::to_string(m_last_fps_count));
+			p_fps_text->SetPosition(Scop::Vec2ui{ 80, 30 });
+		}
 
 		Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
 		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);

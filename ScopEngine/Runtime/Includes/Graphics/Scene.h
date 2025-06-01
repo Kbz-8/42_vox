@@ -76,6 +76,7 @@ namespace Scop
 			void RemoveActor(Actor& actor) noexcept;
 			void RemoveNarrator(Narrator& narrator) noexcept;
 			void RemoveSprite(Sprite& sprite) noexcept;
+			void RemoveText(Text& text) noexcept;
 
 			[[nodiscard]] inline Scene& AddChildScene(std::string_view name, SceneDescriptor desc) { return m_scene_children.emplace_back(name, std::move(desc), this); }
 			inline void AddSkybox(std::shared_ptr<CubeTexture> cubemap) { p_skybox = cubemap; }

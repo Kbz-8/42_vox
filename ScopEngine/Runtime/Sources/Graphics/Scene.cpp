@@ -120,6 +120,17 @@ namespace Scop
 		m_sprites.erase(it);
 	}
 
+	void Scene::RemoveText(Text& text) noexcept
+	{
+		auto it = m_texts.find(text.GetUUID());
+		if(it == m_texts.end())
+		{
+			Error("Text not found");
+			return;
+		}
+		m_texts.erase(it);
+	}
+
 	void Scene::SwitchToChild(std::string_view name) const noexcept
 	{
 		auto it = std::find_if(m_scene_children.begin(), m_scene_children.end(), [name](const Scene& scene){ return name == scene.GetName(); });
