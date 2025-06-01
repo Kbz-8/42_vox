@@ -36,6 +36,8 @@ class World
 
 		[[nodiscard]] inline Scop::Scene& GetScene() noexcept { return m_scene; }
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }
+		[[nodiscard]] inline std::shared_ptr<Scop::GraphicPipeline> GetWaterPipeline() const { return p_water_pipeline; }
+
 		[[nodiscard]] Scop::NonOwningPtr<Chunk> GetChunk(Scop::Vec2i position);
 		[[nodiscard]] NoiseCollection& GetNoiseGenerator() noexcept { return m_noisecollection; }
 
@@ -52,6 +54,9 @@ class World
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
 		ThreadSafeQueue<std::reference_wrapper<Chunk>> m_chunks_to_upload;
 		std::shared_ptr<Scop::Material> p_block_material;
+		std::shared_ptr<Scop::GraphicPipeline> p_water_pipeline;
+		std::shared_ptr<Scop::Shader> p_water_vertex_shader;
+		std::shared_ptr<Scop::Shader> p_water_fragment_shader;
 		Scop::Scene& m_scene;
 		Scop::Vec2i m_previous_chunk_position;
 		Scop::Vec2i m_current_chunk_position;

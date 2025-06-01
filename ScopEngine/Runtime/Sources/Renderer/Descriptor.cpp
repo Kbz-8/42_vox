@@ -84,13 +84,17 @@ namespace Scop
 		}
 
 		std::vector<VkDescriptorSetLayoutBinding> bindings(layout.binds.size());
-		for(std::size_t i = 0; i < layout.binds.size(); i++)
 		{
-			bindings[i].binding = layout.binds[i].first;
-			bindings[i].descriptorCount = 1;
-			bindings[i].descriptorType = layout.binds[i].second;
-			bindings[i].pImmutableSamplers = nullptr;
-			bindings[i].stageFlags = vulkan_shader_stage;
+			std::size_t i = 0;
+			for(auto& [bind, type] : layout.binds)
+			{
+				bindings[i].binding = bind;
+				bindings[i].descriptorCount = 1;
+				bindings[i].descriptorType = type;
+				bindings[i].pImmutableSamplers = nullptr;
+				bindings[i].stageFlags = vulkan_shader_stage;
+				i++;
+			}
 		}
 		VkDescriptorSetLayout vulkan_layout = kvfCreateDescriptorSetLayout(RenderCore::Get().GetDevice(), bindings.data(), bindings.size());
 

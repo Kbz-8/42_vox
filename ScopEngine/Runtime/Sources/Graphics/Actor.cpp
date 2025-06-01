@@ -33,5 +33,7 @@ namespace Scop
 	{
 		if(p_script)
 			p_script->OnQuit(this);
+		if(m_custom_pipeline.has_value() && m_custom_pipeline->data_uniform_buffer)
+			m_custom_pipeline->data_uniform_buffer->Destroy();
 	}
 }

@@ -49,8 +49,8 @@ namespace Scop
 		};
 		EventBus::RegisterListener({ functor, "__ScopRender2DPass" });
 
-		p_viewer_data_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_vertex_shader->GetShaderLayout().set_layouts[0].second,ShaderType::Vertex);
-		p_texture_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
+		p_viewer_data_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_vertex_shader->GetShaderLayout().set_layouts.at(0), ShaderType::Vertex);
+		p_texture_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts.at(1), ShaderType::Fragment);
 
 		p_viewer_data_buffer = std::make_shared<UniformBuffer>();
 		p_viewer_data_buffer->Init(sizeof(ViewerData2D));
@@ -69,10 +69,10 @@ namespace Scop
 			pipeline_descriptor.vertex_shader = p_vertex_shader;
 			pipeline_descriptor.fragment_shader = p_fragment_shader;
 			pipeline_descriptor.color_attachments = { &render_target };
-			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
+			pipeline_descriptor.culling = CullMode::None;
 			pipeline_descriptor.clear_color_attachments = false;
 			pipeline_descriptor.name = "2D_pass_pipeline";
-			m_pipeline.Init(pipeline_descriptor);
+			m_pipeline.Init(std::move(pipeline_descriptor));
 		}
 
 		std::uint32_t frame_index = renderer.GetCurrentFrameIndex();

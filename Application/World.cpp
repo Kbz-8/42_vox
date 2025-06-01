@@ -6,8 +6,18 @@
 #include <World.h>
 #include <Utils.h>
 
-World::World(Scop::Scene& scene) : m_noisecollection(42), m_fps_counter(), m_scene(scene), m_previous_chunk_position(-1000, 10000)
+World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::make_shared<Scop::GraphicPipeline>()), m_fps_counter(), m_scene(scene), m_previous_chunk_position(-1000, 10000)
 {
+	p_water_vertex_shader = Scop::LoadShaderFromFile(GetExecutablePath().parent_path().parent_path() / "Resources/Shaders/Build/WaterVertex.spv", Scop::ShaderType::Vertex, Scop::DefaultForwardVertexShaderLayout);
+	p_water_fragment_shader = Scop::LoadShaderFromFile(GetExecutablePath().parent_path().parent_path() / "Resources/Shaders/Build/WaterFragment.spv", Scop::ShaderType::Fragment, Scop::DefaultShaderLayout);
+
+	Scop::GraphicPipelineDescriptor pipeline_descriptor;
+	pipeline_descriptor.vertex_shader = p_water_vertex_shader;
+	pipeline_descriptor.fragment_shader = p_water_fragment_shader;
+	pipeline_descriptor.clear_color_attachments = false;
+	pipeline_descriptor.name = "water_forward_pass_pipeline";
+	p_water_pipeline->Init(pipeline_descriptor);
+
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
 	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "atlas.bmp", map_size), map_size.x, map_size.y);

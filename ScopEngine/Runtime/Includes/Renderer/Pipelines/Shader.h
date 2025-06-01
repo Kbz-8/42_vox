@@ -4,16 +4,20 @@
 #include <vector>
 #include <cstdint>
 #include <filesystem>
+#include <unordered_map>
 
 #include <kvf.h>
+
+#include <Maths/Mat4.h>
+#include <Utils/NonOwningPtr.h>
 
 namespace Scop
 {
 	struct ShaderSetLayout
 	{
-		std::vector<std::pair<int, VkDescriptorType> > binds;
+		std::unordered_map<int, VkDescriptorType> binds;
 
-		ShaderSetLayout(std::vector<std::pair<int, VkDescriptorType> > b) : binds(std::move(b)) {}
+		ShaderSetLayout(std::unordered_map<int, VkDescriptorType> b) : binds(std::move(b)) {}
 
 		inline bool operator==(const ShaderSetLayout& rhs) const { return binds == rhs.binds; }
 	};
@@ -28,10 +32,10 @@ namespace Scop
 
 	struct ShaderLayout
 	{
-		std::vector<std::pair<int, ShaderSetLayout> > set_layouts;
+		std::unordered_map<int, ShaderSetLayout> set_layouts;
 		std::vector<ShaderPushConstantLayout> push_constants;
 
-		ShaderLayout(std::vector<std::pair<int, ShaderSetLayout> > s, std::vector<ShaderPushConstantLayout> pc) : set_layouts(std::move(s)), push_constants(std::move(pc)) {}
+		ShaderLayout(std::unordered_map<int, ShaderSetLayout> s, std::vector<ShaderPushConstantLayout> pc) : set_layouts(std::move(s)), push_constants(std::move(pc)) {}
 	};
 
 	enum class ShaderType
@@ -57,6 +61,9 @@ namespace Scop
 			[[nodiscard]] inline const ShaderPipelineLayoutPart& GetPipelineLayout() const noexcept { return m_pipeline_layout_part; }
 			[[nodiscard]] inline VkShaderModule GetShaderModule() const noexcept { return m_module; }
 			[[nodiscard]] inline VkShaderStageFlagBits GetShaderStage() const noexcept { return m_stage; }
+			[[nodiscard]] inline NonOwningPtr<class GraphicPipeline> GetGraphicPipelineInUse() const noexcept { return p_pipeline_in_use; }
+
+			inline void SetPipelineInUse(NonOwningPtr<class GraphicPipeline> pipeline) noexcept { p_pipeline_in_use = pipeline; }
 
 			void Destroy();
 
@@ -73,9 +80,21 @@ namespace Scop
 			std::vector<VkDescriptorSetLayout> m_set_layouts;
 			VkShaderStageFlagBits m_stage;
 			VkShaderModule m_module = VK_NULL_HANDLE;
+			NonOwningPtr<class GraphicPipeline> p_pipeline_in_use = nullptr;
 	};
 
 	std::shared_ptr<Shader> LoadShaderFromFile(const std::filesystem::path& filepath, ShaderType type, ShaderLayout layout);
+
+	static const ShaderLayout DefaultForwardVertexShaderLayout(
+		{
+			{ 0,
+				ShaderSetLayout({ 
+					{ 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER },
+					{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER },
+				})
+			}
+		}, { ShaderPushConstantLayout({ 0, sizeof(Mat4f) * 2 }) }
+	);
 
 	static const Scop::ShaderLayout DefaultShaderLayout(
 		{

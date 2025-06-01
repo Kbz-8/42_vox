@@ -6,6 +6,7 @@
 
 #include <kvf.h>
 
+#include <Graphics/Enums.h>
 #include <Renderer/Image.h>
 #include <Utils/NonOwningPtr.h>
 #include <Renderer/Pipelines/Shader.h>
@@ -21,11 +22,11 @@ namespace Scop
 		NonOwningPtr<DepthImage> depth = nullptr;
 		NonOwningPtr<class Renderer> renderer = nullptr;
 		std::string name = {};
-		VkCullModeFlagBits culling = VK_CULL_MODE_FRONT_BIT;
-		VkPolygonMode mode = VK_POLYGON_MODE_FILL;
+		CullMode culling = CullMode::Front;
 		bool no_vertex_inputs = false;
 		bool depth_test_equal = false;
 		bool clear_color_attachments = true;
+		bool wireframe = false;
 	};
 
 	class GraphicPipeline : public Pipeline
@@ -33,7 +34,7 @@ namespace Scop
 		public:
 			GraphicPipeline() = default;
 
-			void Init(const GraphicPipelineDescriptor& descriptor);
+			void Init(GraphicPipelineDescriptor descriptor);
 			bool BindPipeline(VkCommandBuffer command_buffer, std::size_t framebuffer_index, std::array<float, 4> clear) noexcept;
 			void EndPipeline(VkCommandBuffer command_buffer) noexcept override;
 			void Destroy() noexcept;
@@ -41,6 +42,8 @@ namespace Scop
 			[[nodiscard]] inline VkPipeline GetPipeline() const override { return m_pipeline; }
 			[[nodiscard]] inline VkPipelineLayout GetPipelineLayout() const override { return m_pipeline_layout; }
 			[[nodiscard]] inline VkPipelineBindPoint GetPipelineBindPoint() const override { return VK_PIPELINE_BIND_POINT_GRAPHICS; }
+			[[nodiscard]] inline bool IsPipelineBound() const noexcept { return s_bound_pipeline == this; }
+			[[nodiscard]] inline GraphicPipelineDescriptor& GetDescription() noexcept { return m_description; }
 
 			inline ~GraphicPipeline() noexcept { Destroy(); }
 
@@ -52,16 +55,14 @@ namespace Scop
 			bool BindPipeline(VkCommandBuffer) noexcept override { return false; };
 
 		private:
-			std::vector<NonOwningPtr<Texture>> m_attachments;
+			static inline GraphicPipeline* s_bound_pipeline = nullptr;
+
+			GraphicPipelineDescriptor m_description;
 			std::vector<VkFramebuffer> m_framebuffers;
 			std::vector<VkClearValue> m_clears;
-			std::shared_ptr<Shader> p_vertex_shader;
-			std::shared_ptr<Shader> p_fragment_shader;
 			VkRenderPass m_renderpass = VK_NULL_HANDLE;
 			VkPipeline m_pipeline = VK_NULL_HANDLE;
 			VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
-			NonOwningPtr<class Renderer> p_renderer;
-			NonOwningPtr<DepthImage> p_depth;
 	};
 }
 

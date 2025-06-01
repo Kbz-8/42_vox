@@ -2,6 +2,8 @@
 #include <Block.h>
 #include <World.h>
 
+#include <ScopCore.h>
+
 #define POS_TO_INDEX(posx, posz) (posx * CHUNK_SIZE.x + posz)
 
 constexpr Scop::Vec2ui SPRITE_SIZE = { 16, 16 };
@@ -27,6 +29,11 @@ enum class Side : std::uint8_t
 	Top = 0,
 	Bottom,
 	Side
+};
+
+struct WaterData
+{
+	float time;
 };
 
 Scop::Vec2f GetAtlasOffset(BlockType type, Side side)
@@ -80,7 +87,7 @@ void Chunk::GenerateMesh()
 				std::vector<std::uint32_t>& index_data = (is_water ? m_water_mesh_index_data : m_mesh_index_data);
 				std::uint32_t& offset = (is_water ? water_offset : mesh_offset);
 
-				Scop::Vec4f base_color = is_water ? Scop::Vec4f{ 0.3f, 0.5f, 0.5f, 0.8f } : Scop::Vec4f{ 1.0f };
+				Scop::Vec4f base_color = is_water ? Scop::Vec4f{ 0.3f, 0.1f, 0.05f, 0.98f } : Scop::Vec4f{ 1.0f };
 				std::uint32_t invalid_limit = is_water ? static_cast<std::uint32_t>(BlockType::Air) : static_cast<std::uint32_t>(BlockType::Water);
 
 				if(GetBlock(Scop::Vec3i(x, y, z + 1)) <= invalid_limit)
@@ -333,6 +340,19 @@ void Chunk::UploadMesh()
 		actor.SetScale(Scop::Vec3f{ 2.0f });
 		actor.SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
 		actor.SetIsOpaque(false);
+		actor.SetCustomPipeline({
+			.pipeline = m_world.GetWaterPipeline(),
+			.data{ sizeof(WaterData) }
+		});
+		std::memset(actor.GetCustomPipeline()->data.GetData(), 0, actor.GetCustomPipeline()->data.GetSize());
+
+		auto object_update = [](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Actor> actor, Scop::Inputs& input, float delta)
+		{
+			WaterData* data = actor->GetCustomPipeline()->data.GetDataAs<WaterData>();
+			data->time += delta;
+		};
+		using actor_hook = std::function<void(Scop::NonOwningPtr<Scop::Actor>)>;
+		actor.AttachScript(std::make_shared<Scop::NativeActorScript>(actor_hook{}, object_update, actor_hook{}));
 		p_water_actor = &actor;
 	}
 }

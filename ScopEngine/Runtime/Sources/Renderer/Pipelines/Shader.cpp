@@ -31,16 +31,18 @@ namespace Scop
 
 	void Shader::GeneratePipelineLayout(ShaderLayout layout)
 	{
-		for(auto& [n, set] : layout.set_layouts)
+		for(auto& [_, set] : layout.set_layouts)
 		{
 			std::vector<VkDescriptorSetLayoutBinding> bindings(set.binds.size());
-			for(std::size_t i = 0; i < set.binds.size(); i++)
+			std::size_t i = 0;
+			for(auto& [bind, type] : set.binds)
 			{
-				bindings[i].binding = set.binds[i].first;
+				bindings[i].binding = bind;
 				bindings[i].descriptorCount = 1;
-				bindings[i].descriptorType = set.binds[i].second;
+				bindings[i].descriptorType = type;
 				bindings[i].pImmutableSamplers = nullptr;
 				bindings[i].stageFlags = m_stage;
+				i++;
 			}
 			m_set_layouts.emplace_back(kvfCreateDescriptorSetLayout(RenderCore::Get().GetDevice(), bindings.data(), bindings.size()));
 			Message("Vulkan: descriptor set layout created");

@@ -1,0 +1,39 @@
+[nzsl_version("1.0")]
+module;
+
+struct VertOut
+{
+	[location(0)] color: vec4[f32],
+	[location(1)] uv: vec2[f32],
+    [location(2)] time: f32,
+	[builtin(position)] pos: vec4[f32]
+}
+
+struct FragmentData
+{
+	dissolve_texture_factor: f32,
+	dissolve_black_white_colors_factor: f32,
+	dissolve_normals_colors_factor: f32,
+}
+
+struct FragOut
+{
+	[location(0)] color: vec4[f32]
+}
+
+external
+{
+	[set(1), binding(0)] u_albedo: sampler2D[f32],
+	[set(1), binding(1)] u_fragment_data: uniform[FragmentData],
+}
+
+[entry(frag)]
+fn main(input: VertOut) -> FragOut
+{
+	if(input.color.a == 0.0)
+		discard;
+	let output: FragOut;
+	output.color = input.color * u_albedo.Sample(input.uv) * vec4[f32](sin(input.time), 1.0, cos(input.time), 1.0);
+	return output;
+}
+

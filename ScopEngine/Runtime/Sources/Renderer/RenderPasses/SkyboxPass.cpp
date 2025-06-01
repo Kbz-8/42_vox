@@ -40,7 +40,7 @@ namespace Scop
 		EventBus::RegisterListener({ functor, "__ScopSkyboxPass" });
 
 		m_cube = CreateCube();
-		p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
+		p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts.at(1), ShaderType::Fragment);
 	}
 
 	void SkyboxPass::Pass(Scene& scene, Renderer& renderer, class Texture& render_target)
@@ -55,11 +55,11 @@ namespace Scop
 			pipeline_descriptor.fragment_shader = p_fragment_shader;
 			pipeline_descriptor.color_attachments = { &render_target };
 			pipeline_descriptor.depth = &scene.GetDepth();
-			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
+			pipeline_descriptor.culling = CullMode::None;
 			pipeline_descriptor.depth_test_equal = true;
 			pipeline_descriptor.clear_color_attachments = false;
 			pipeline_descriptor.name = "skybox_pass_pipeline";
-			m_pipeline.Init(pipeline_descriptor);
+			m_pipeline.Init(std::move(pipeline_descriptor));
 		}
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();

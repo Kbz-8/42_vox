@@ -41,11 +41,11 @@ namespace Scop
 			pipeline_descriptor.vertex_shader = p_vertex_shader;
 			pipeline_descriptor.fragment_shader = scene.GetDescription().post_process_shader;
 			pipeline_descriptor.color_attachments = { &m_render_texture };
-			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
+			pipeline_descriptor.culling = CullMode::None;
 			pipeline_descriptor.clear_color_attachments = false;
 			pipeline_descriptor.no_vertex_inputs = true;
 			pipeline_descriptor.name = "post_process_pass_pipeline";
-			m_pipeline.Init(pipeline_descriptor);
+			m_pipeline.Init(std::move(pipeline_descriptor));
 		}
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();

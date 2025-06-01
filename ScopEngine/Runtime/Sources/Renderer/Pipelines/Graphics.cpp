@@ -2,47 +2,58 @@
 #include <Renderer/RenderCore.h>
 #include <Renderer/Renderer.h>
 #include <Renderer/Vertex.h>
+#include <Graphics/Enums.h>
 #include <Core/EventBus.h>
 #include <Core/Logs.h>
 
 namespace Scop
 {
-	void GraphicPipeline::Init(const GraphicPipelineDescriptor& descriptor)
+	void GraphicPipeline::Init(GraphicPipelineDescriptor descriptor)
 	{
 		if(!descriptor.vertex_shader || !descriptor.fragment_shader)
 			FatalError("Vulkan: invalid shaders");
 
-		m_attachments = descriptor.color_attachments;
-		p_vertex_shader = descriptor.vertex_shader;
-		p_fragment_shader = descriptor.fragment_shader;
-		p_renderer = descriptor.renderer;
-		p_depth = descriptor.depth;
+		m_description = std::move(descriptor);
+
+		m_description.vertex_shader->SetPipelineInUse(this);
+		m_description.fragment_shader->SetPipelineInUse(this);
 
 		std::vector<VkPushConstantRange> push_constants;
 		std::vector<VkDescriptorSetLayout> set_layouts;
-		push_constants.insert(push_constants.end(), p_vertex_shader->GetPipelineLayout().push_constants.begin(), p_vertex_shader->GetPipelineLayout().push_constants.end());
-		push_constants.insert(push_constants.end(), p_fragment_shader->GetPipelineLayout().push_constants.begin(), p_fragment_shader->GetPipelineLayout().push_constants.end());
-		set_layouts.insert(set_layouts.end(), p_vertex_shader->GetPipelineLayout().set_layouts.begin(), p_vertex_shader->GetPipelineLayout().set_layouts.end());
-		set_layouts.insert(set_layouts.end(), p_fragment_shader->GetPipelineLayout().set_layouts.begin(), p_fragment_shader->GetPipelineLayout().set_layouts.end());
+		push_constants.insert(push_constants.end(), m_description.vertex_shader->GetPipelineLayout().push_constants.begin(), m_description.vertex_shader->GetPipelineLayout().push_constants.end());
+		push_constants.insert(push_constants.end(), m_description.fragment_shader->GetPipelineLayout().push_constants.begin(), m_description.fragment_shader->GetPipelineLayout().push_constants.end());
+		set_layouts.insert(set_layouts.end(), m_description.vertex_shader->GetPipelineLayout().set_layouts.begin(), m_description.vertex_shader->GetPipelineLayout().set_layouts.end());
+		set_layouts.insert(set_layouts.end(), m_description.fragment_shader->GetPipelineLayout().set_layouts.begin(), m_description.fragment_shader->GetPipelineLayout().set_layouts.end());
 		m_pipeline_layout = kvfCreatePipelineLayout(RenderCore::Get().GetDevice(), set_layouts.data(), set_layouts.size(), push_constants.data(), push_constants.size());
 
-		CreateFramebuffers(m_attachments, descriptor.clear_color_attachments);
+		CreateFramebuffers(m_description.color_attachments, m_description.clear_color_attachments);
 
 		VkPhysicalDeviceFeatures features{};
 		RenderCore::Get().vkGetPhysicalDeviceFeatures(RenderCore::Get().GetPhysicalDevice(), &features);
 
+		VkCullModeFlags cullmode;
+		switch(m_description.culling)
+		{
+			case CullMode::None: cullmode = VK_CULL_MODE_NONE; break;
+			case CullMode::Back: cullmode = VK_CULL_MODE_BACK_BIT; break;
+			case CullMode::Front: cullmode = VK_CULL_MODE_FRONT_BIT; break;
+			case CullMode::FrontAndBack: cullmode = VK_CULL_MODE_FRONT_AND_BACK; break;
+
+			default: break;
+		}
+
 		KvfGraphicsPipelineBuilder* builder = kvfCreateGPipelineBuilder();
-		kvfGPipelineBuilderAddShaderStage(builder, p_vertex_shader->GetShaderStage(), p_vertex_shader->GetShaderModule(), "main");
-		kvfGPipelineBuilderAddShaderStage(builder, p_fragment_shader->GetShaderStage(), p_fragment_shader->GetShaderModule(), "main");
+		kvfGPipelineBuilderAddShaderStage(builder, m_description.vertex_shader->GetShaderStage(), m_description.vertex_shader->GetShaderModule(), "main");
+		kvfGPipelineBuilderAddShaderStage(builder, m_description.fragment_shader->GetShaderStage(), m_description.fragment_shader->GetShaderModule(), "main");
 		kvfGPipelineBuilderSetInputTopology(builder, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-		kvfGPipelineBuilderSetCullMode(builder, descriptor.culling, VK_FRONT_FACE_CLOCKWISE);
+		kvfGPipelineBuilderSetCullMode(builder, cullmode, VK_FRONT_FACE_CLOCKWISE);
 		kvfGPipelineBuilderEnableAlphaBlending(builder);
-		if(p_depth)
-			kvfGPipelineBuilderEnableDepthTest(builder, (descriptor.depth_test_equal ? VK_COMPARE_OP_EQUAL : VK_COMPARE_OP_LESS), true);
+		if(m_description.depth)
+			kvfGPipelineBuilderEnableDepthTest(builder, (m_description.depth_test_equal ? VK_COMPARE_OP_EQUAL : VK_COMPARE_OP_LESS), true);
 		else
 			kvfGPipelineBuilderDisableDepthTest(builder);
-		if(features.fillModeNonSolid)
-			kvfGPipelineBuilderSetPolygonMode(builder, descriptor.mode, 1.0f);
+		if(m_description.wireframe && features.fillModeNonSolid)
+			kvfGPipelineBuilderSetPolygonMode(builder, VK_POLYGON_MODE_LINE, 1.0f);
 		else
 			kvfGPipelineBuilderSetPolygonMode(builder, VK_POLYGON_MODE_FILL, 1.0f);
 		if(features.sampleRateShading)
@@ -50,7 +61,7 @@ namespace Scop
 		else
 			kvfGPipelineBuilderSetMultisampling(builder, VK_SAMPLE_COUNT_1_BIT);
 
-		if(!descriptor.no_vertex_inputs)
+		if(!m_description.no_vertex_inputs)
 		{
 			VkVertexInputBindingDescription binding_description = Vertex::GetBindingDescription();
 			auto attributes_description = Vertex::GetAttributeDescriptions();
@@ -65,7 +76,7 @@ namespace Scop
 			name_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
 			name_info.objectType = VK_OBJECT_TYPE_PIPELINE;
 			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_pipeline);
-			name_info.pObjectName = descriptor.name.data();
+			name_info.pObjectName = m_description.name.data();
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 
 			name_info.objectType = VK_OBJECT_TYPE_RENDER_PASS;
@@ -73,10 +84,10 @@ namespace Scop
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 
 			name_info.objectType = VK_OBJECT_TYPE_SHADER_MODULE;
-			name_info.objectHandle = reinterpret_cast<std::uint64_t>(p_vertex_shader->GetShaderModule());
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_description.vertex_shader->GetShaderModule());
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 
-			name_info.objectHandle = reinterpret_cast<std::uint64_t>(p_fragment_shader->GetShaderModule());
+			name_info.objectHandle = reinterpret_cast<std::uint64_t>(m_description.fragment_shader->GetShaderModule());
 			RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 
 			name_info.objectType = VK_OBJECT_TYPE_FRAMEBUFFER;
@@ -85,7 +96,7 @@ namespace Scop
 				name_info.objectHandle = reinterpret_cast<std::uint64_t>(fb);
 				RenderCore::Get().vkSetDebugUtilsObjectNameEXT(RenderCore::Get().GetDevice(), &name_info);
 			}
-			Message("Vulkan: % graphics pipeline created", descriptor.name);
+			Message("Vulkan: % graphics pipeline created", m_description.name);
 		#else
 			Message("Vulkan: graphics pipeline created");
 		#endif
@@ -93,6 +104,13 @@ namespace Scop
 
 	bool GraphicPipeline::BindPipeline(VkCommandBuffer command_buffer, std::size_t framebuffer_index, std::array<float, 4> clear) noexcept
 	{
+		if(s_bound_pipeline != nullptr)
+		{
+			Error("Vulkan: cannot bind a graphics pipeline because another one have not been unbound");
+			return false;
+		}
+
+		s_bound_pipeline = this;
 		TransitionAttachments(command_buffer);
 
 		VkFramebuffer fb = m_framebuffers[framebuffer_index];
@@ -120,7 +138,7 @@ namespace Scop
 			m_clears[i].color.float32[3] = clear[3];
 		}
 
-		if(p_depth)
+		if(m_description.depth)
 			m_clears.back().depthStencil = VkClearDepthStencilValue{ 1.0f, 0 };
 
 		kvfBeginRenderPass(m_renderpass, command_buffer, fb, fb_extent, m_clears.data(), m_clears.size());
@@ -130,7 +148,10 @@ namespace Scop
 
 	void GraphicPipeline::EndPipeline(VkCommandBuffer command_buffer) noexcept
 	{
+		if(s_bound_pipeline != this)
+			return;
 		RenderCore::Get().vkCmdEndRenderPass(command_buffer);
+		s_bound_pipeline = nullptr;
 	}
 
 	void GraphicPipeline::Destroy() noexcept
@@ -151,16 +172,14 @@ namespace Scop
 		Message("Vulkan: renderpass destroyed");
 		kvfDestroyPipeline(RenderCore::Get().GetDevice(), m_pipeline);
 
-		p_vertex_shader.reset();
-		p_fragment_shader.reset();
-		m_attachments.clear();
+		m_description.vertex_shader.reset();
+		m_description.fragment_shader.reset();
+		m_description.color_attachments.clear();
 		m_framebuffers.clear();
 		m_clears.clear();
 		m_renderpass = VK_NULL_HANDLE;
 		m_pipeline = VK_NULL_HANDLE;
 		m_pipeline_layout = VK_NULL_HANDLE;
-		p_renderer = nullptr;
-		p_depth = nullptr;
 		Message("Vulkan: graphics pipeline destroyed");
 	}
 
@@ -170,10 +189,10 @@ namespace Scop
 
 		std::vector<VkAttachmentDescription> attachments;
 		std::vector<VkImageView> attachment_views;
-		if(p_renderer)
+		if(m_description.renderer)
 		{
-			attachments.push_back(kvfBuildSwapchainAttachmentDescription(p_renderer->GetSwapchain().Get(), clear_attachments));
-			attachment_views.push_back(p_renderer->GetSwapchain().GetSwapchainImages()[0].GetImageView());
+			attachments.push_back(kvfBuildSwapchainAttachmentDescription(m_description.renderer->GetSwapchain().Get(), clear_attachments));
+			attachment_views.push_back(m_description.renderer->GetSwapchain().GetSwapchainImages()[0].GetImageView());
 		}
 
 		for(NonOwningPtr<Texture> image : render_targets)
@@ -182,10 +201,10 @@ namespace Scop
 			attachment_views.push_back(image->GetImageView());
 		}
 
-		if(p_depth)
+		if(m_description.depth)
 		{
-			attachments.push_back(kvfBuildAttachmentDescription(KVF_IMAGE_DEPTH, p_depth->GetFormat(), p_depth->GetLayout(), p_depth->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
-			attachment_views.push_back(p_depth->GetImageView());
+			attachments.push_back(kvfBuildAttachmentDescription(KVF_IMAGE_DEPTH, m_description.depth->GetFormat(), m_description.depth->GetLayout(), m_description.depth->GetLayout(), clear_attachments, VK_SAMPLE_COUNT_1_BIT));
+			attachment_views.push_back(m_description.depth->GetImageView());
 		}
 
 		m_renderpass = kvfCreateRenderPass(RenderCore::Get().GetDevice(), attachments.data(), attachments.size(), GetPipelineBindPoint());
@@ -193,9 +212,9 @@ namespace Scop
 		m_clears.resize(attachments.size());
 		Message("Vulkan: renderpass created");
 
-		if(p_renderer)
+		if(m_description.renderer)
 		{
-			for(const Image& image : p_renderer->GetSwapchain().GetSwapchainImages())
+			for(const Image& image : m_description.renderer->GetSwapchain().GetSwapchainImages())
 			{
 				attachment_views[0] = image.GetImageView();
 				m_framebuffers.push_back(kvfCreateFramebuffer(RenderCore::Get().GetDevice(), m_renderpass, attachment_views.data(), attachment_views.size(), { .width = image.GetWidth(), .height = image.GetHeight() }));
@@ -211,10 +230,10 @@ namespace Scop
 
 	void GraphicPipeline::TransitionAttachments(VkCommandBuffer cmd)
 	{
-		if(p_depth)
-			p_depth->TransitionLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, cmd);
+		if(m_description.depth)
+			m_description.depth->TransitionLayout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, cmd);
 
-		for(NonOwningPtr<Texture> image : m_attachments)
+		for(NonOwningPtr<Texture> image : m_description.color_attachments)
 			image->TransitionLayout(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, cmd);
 	}
 }

@@ -1,12 +1,14 @@
 #ifndef __SCOP_GRAPHICS_ACTOR__
 #define __SCOP_GRAPHICS_ACTOR__
 
+#include <optional>
+
+#include <Core/UUID.h>
 #include <Maths/Vec3.h>
 #include <Maths/Vec4.h>
-#include <Maths/Quaternions.h>
 #include <Core/Script.h>
+#include <Maths/Quaternions.h>
 #include <Graphics/Model.h>
-#include <Core/UUID.h>
 
 namespace Scop
 {
@@ -17,7 +19,9 @@ namespace Scop
 		public:
 			struct CustomPipeline
 			{
-				std::shared_ptr<Shader> shader;
+				std::shared_ptr<GraphicPipeline> pipeline;
+				std::shared_ptr<DescriptorSet> set;
+				std::shared_ptr<UniformBuffer> data_uniform_buffer;
 				CPUBuffer data;
 			};
 
@@ -33,6 +37,7 @@ namespace Scop
 			inline void SetOrientation(Quatf orientation) noexcept { m_orientation = orientation; }
 			inline void SetVisibility(bool show) noexcept { m_is_visible = show; }
 			inline void SetIsOpaque(bool opaque) noexcept { m_is_opaque = opaque; }
+			inline void SetCustomPipeline(const CustomPipeline& pipeline) { m_custom_pipeline = pipeline; }
 
 			[[nodiscard]] inline const Vec3f& GetPosition() const noexcept { return m_position; }
 			[[nodiscard]] inline const Vec3f& GetScale() const noexcept { return m_scale; }
@@ -42,6 +47,7 @@ namespace Scop
 			[[nodiscard]] inline std::uint64_t GetUUID() const noexcept { return m_uuid; }
 			[[nodiscard]] inline bool IsVisible() const noexcept { return m_is_visible; }
 			[[nodiscard]] inline bool IsOpaque() const noexcept { return m_is_opaque; }
+			[[nodiscard]] inline std::optional<CustomPipeline>& GetCustomPipeline() { return m_custom_pipeline; }
 
 			~Actor();
 
@@ -55,6 +61,7 @@ namespace Scop
 			Vec3f m_scale = Vec3f{ 1.0f, 1.0f, 1.0f };
 			std::shared_ptr<ActorScript> p_script;
 			std::uint64_t m_uuid;
+			std::optional<CustomPipeline> m_custom_pipeline;
 			bool m_is_visible = true;
 			bool m_is_opaque = true;
 	};

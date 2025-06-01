@@ -31,7 +31,7 @@ namespace Scop
 		};
 		EventBus::RegisterListener({ functor, "__ScopFinalPass" });
 
-		p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts[0].second, ShaderType::Fragment);
+		p_set = RenderCore::Get().GetDescriptorPoolManager().GetAvailablePool().RequestDescriptorSet(p_fragment_shader->GetShaderLayout().set_layouts.at(0), ShaderType::Fragment);
 	}
 
 	void FinalPass::Pass(Scene& scene, Renderer& renderer, Texture& render_target)
@@ -42,10 +42,10 @@ namespace Scop
 			pipeline_descriptor.vertex_shader = p_vertex_shader;
 			pipeline_descriptor.fragment_shader = p_fragment_shader;
 			pipeline_descriptor.renderer = &renderer;
-			pipeline_descriptor.culling = VK_CULL_MODE_NONE;
+			pipeline_descriptor.culling = CullMode::None;
 			pipeline_descriptor.no_vertex_inputs = true;
 			pipeline_descriptor.name = "final_pass_pipeline";
-			m_pipeline.Init(pipeline_descriptor);
+			m_pipeline.Init(std::move(pipeline_descriptor));
 		}
 
 		VkCommandBuffer cmd = renderer.GetActiveCommandBuffer();
