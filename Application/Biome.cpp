@@ -5,7 +5,7 @@
 #include "NoiseCollection.h"
 #include <utility>
 
-Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::uint32_t water_content, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), water_content(water_content), c_blockmap(blocks)
+Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::uint32_t water_content, std::uint32_t padder_block, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), water_content(water_content), padder_block(padder_block), c_blockmap(blocks)
 {
 	for (const auto& [height, BlockPlacement] : blocks)
 	{
@@ -28,7 +28,12 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 		Scop::FatalError("Biome declaration does not have a value for a certain generated height");
 	for(std::uint32_t y = ARTIFICIAL_ELEVATION; y < std::min(height, CHUNK_SIZE.y); y++)
 	{
-		if(y > std::min(height, CHUNK_SIZE.y) - 2)
+		if(y > std::min(height, CHUNK_SIZE.y) - 5 && y <= std::min(height, CHUNK_SIZE.y) - 2)
+		{
+			data[y] = padder_block;
+			continue;
+		}
+		else if(y > std::min(height, CHUNK_SIZE.y) - 2)
 		{
 			const auto& [placementType, blockTypes] = it->second;
 			switch (static_cast<std::uint8_t>(placementType))

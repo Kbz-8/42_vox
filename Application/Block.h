@@ -17,6 +17,7 @@ enum class BlockType : std::uint32_t
 	SnowyGrass,
 	Cactus,
 	Ice,
+	SandStone,
 
 	EndEnum
 };
