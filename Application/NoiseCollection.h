@@ -25,6 +25,15 @@ class NoiseCollection
 																	4,
 																	1.2f
 																	));
+			m_collection.emplace("humidity", std::make_unique<Noise>(seed, // seed
+																	0.02f,
+																	0.3f,
+																	1,
+																	2.0f,
+																	0.6f,
+																	2,
+																	1.0f
+																	));
 			m_collection.emplace("caves", std::make_unique<Noise>(seed,
 																	0.02f,
 																	1.0f,
@@ -34,14 +43,23 @@ class NoiseCollection
 																	3,
 																	1.0f
 																	)); // TODO !!!!!!
-			m_collection.emplace("biomes", std::make_unique<Noise>(seed,
+			m_collection.emplace("biomes", std::make_unique<Noise>(seed + 1,
 																	0.05f,
-																	1.0f,
+																	0.1f,
 																	1,
 																	2.0f,
 																	0.5f,
 																	1,
 																	1.0f
+																	));
+			m_collection.emplace("temperature", std::make_unique<Noise>(seed + 1,
+																	0.02f,
+																	0.3f,
+																	2,
+																	2.0f,
+																	0.55f,
+																	2,
+																	1.05f
 																	));
 		}
 

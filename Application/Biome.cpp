@@ -2,6 +2,7 @@
 #include "Biome.h"
 #include "Block.h"
 #include "Chunk.h"
+#include "NoiseCollection.h"
 #include <utility>
 
 Biome::Biome(std::uint32_t filler, std::uint32_t water_level, std::map<std::uint32_t, std::pair<BlockPlacementType, std::vector<BlockType>>> blocks): filler(filler), water_level(water_level), c_blockmap(blocks)
@@ -18,11 +19,14 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 {
 	std::array<std::uint32_t, CHUNK_SIZE.y> data;
 
-	auto it = c_blockmap.lower_bound(height);
+	std::memset(data.data(), static_cast<std::uint32_t>(BlockType::Air), data.size() * sizeof(std::uint32_t));
+	std::fill(data.begin(), data.begin() + ARTIFICIAL_ELEVATION, filler);
+	std::fill(data.begin() + ARTIFICIAL_ELEVATION, data.begin() + ARTIFICIAL_ELEVATION + water_level, static_cast<std::uint32_t>(BlockType::Water));
+	auto it = c_blockmap.lower_bound(height - ARTIFICIAL_ELEVATION);
 
 	if (it == c_blockmap.end())
 		Scop::FatalError("Biome declaration does not have a value for a certain generated height");
-	for(std::uint32_t y = 0; y < std::min(height, CHUNK_SIZE.y); y++)
+	for(std::uint32_t y = ARTIFICIAL_ELEVATION; y < std::min(height, CHUNK_SIZE.y); y++)
 	{
 		if(y > std::min(height, CHUNK_SIZE.y) - 2)
 		{
@@ -31,7 +35,7 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 			{
 				case(static_cast<std::uint8_t>(BlockPlacementType::Simple)):
 				{
-					data[y] = static_cast<std::uint32_t>(blockTypes.front());
+					data[y] = static_cast<std::uint32_t>(blockTypes.at(0));
 					break;
 				}
 				case(static_cast<std::uint8_t>(BlockPlacementType::PseudoRandom)):
@@ -44,18 +48,13 @@ const std::array<std::uint32_t, CHUNK_SIZE.y> Biome::GetBiomeBlocks(const std::u
 					break;
 				}
 				default:
-					data[y] = static_cast<std::uint32_t>(BlockType::Stone);
+					data[y] = static_cast<std::uint32_t>(BlockType::Stone); // fallback
 			}
 		}
 		else
 		{
 			data[y] = filler;
 		}
-	}
-	for(std::uint32_t y = 0; y < water_level; y++)
-	{
-		if(data[y] == static_cast<std::uint32_t>(BlockType::Air))
-			data[y] = static_cast<std::uint32_t>(BlockType::Water);
 	}
 	return data;
 }
