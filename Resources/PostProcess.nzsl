@@ -3,7 +3,8 @@ module;
 
 struct VertOut
 {
-	[location(0)] uv: vec2[f32]
+	[location(0)] uv: vec2[f32],
+    [builtin(frag_coord)] fragcoord: vec4[f32],
 }
 
 struct FragOut
@@ -14,6 +15,7 @@ struct FragOut
 [layout(std140)]
 struct Data
 {
+    inv_res: vec2[f32],
     underwater: i32,
 }
 
@@ -39,21 +41,76 @@ fn MixVec4f32(a: vec4[f32], b: vec4[f32], t: f32) -> vec4[f32]
     );
 }
 
+option EnableDepthOfField: bool = false;
+fn SampleDepthOfField(uv: vec2[f32], depth: f32) -> vec4[f32]
+{
+    const focal_depth: f32 = 0.5;
+    const focal_range: f32 = 0.15;
+    const blur_amount: f32 = 0.0005;
+    const samples: i32 = 16;
+
+    let blur: f32 = clamp(abs(depth - focal_depth) / focal_range, 0.0, 1.0) * blur_amount;
+
+    let color = vec4[f32](0.0, 0.0, 0.0, 1.0);
+    for i in 0 -> samples
+    {
+        let angle: f32 = f32(i) * 3.14159265 * 2.0 / f32(samples);
+        let offset: vec2[f32] = vec2[f32](cos(angle), sin(angle)) * blur;
+        color += u_texture.Sample(uv + offset);
+    }
+    return color / f32(samples);
+}
+
+option EnableRadialBlur: bool = true;
+fn SampleRadialBlur(uv: vec2[f32]) -> vec4[f32]
+{
+    const center = vec2[f32](0.5, 0.5);
+    const blur_strength: f32 = 0.01;
+    const samples: i32 = 16;
+    const fade_start: f32 = -0.1;
+
+    let dir: vec2[f32] = uv - center;
+    let dist: f32 = length(dir);
+    let dynamic_strength: f32 = blur_strength * dist;
+    let step: vec2[f32] = dir * dynamic_strength / f32(samples);
+
+    let accum_color: vec4[f32] = vec4[f32](0.0, 0.0, 0.0, 0.0);
+    let sample_uv: vec2[f32] = uv;
+
+    for i in 0 -> samples
+    {
+        accum_color += u_texture.Sample(sample_uv);
+        sample_uv -= step;
+    }
+    let color = accum_color / f32(samples);
+    let fade: f32 = clamp((dist - fade_start) / (1.0 - fade_start), 0.0, 1.0);
+    return color * (1.0 - fade);
+}
+
 [entry(frag)]
 fn main(input: VertOut) -> FragOut
 {
-    const fog_near: f32 = 0.9;
-    const fog_far: f32 = 1.0;
-    const fog_color: vec4[f32] = vec4[f32](0.0, 0.0, 0.25, 1.0);
-
+    let depth: f32 = u_depth.Sample(input.uv).r;
     let output: FragOut;
-    output.color = u_texture.Sample(input.uv);
+
+    const if(EnableDepthOfField)
+        output.color = SampleDepthOfField(input.uv, depth);
+    else
+        output.color = u_texture.Sample(input.uv);
+
+    const if(EnableRadialBlur)
+        output.color = SampleRadialBlur(input.uv);
+
     if(u_data.underwater != 0)
     {
-        let depth: f32 = u_depth.Sample(input.uv).r;
+        const fog_near: f32 = 0.9;
+        const fog_far: f32 = 1.0;
+        const fog_color: vec4[f32] = vec4[f32](0.0, 0.0, 0.25, 1.0);
         let fog_factor: f32 = (fog_far - depth) / (fog_far - fog_near);
         fog_factor = clamp(fog_factor, 0.0, 1.0);
         output.color = MixVec4f32(fog_color, output.color, fog_factor);
     }
+
+    output.color.w = 1.0;
     return output;
 }
