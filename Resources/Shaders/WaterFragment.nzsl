@@ -5,7 +5,8 @@ struct VertOut
 {
 	[location(0)] color: vec4[f32],
 	[location(1)] uv: vec2[f32],
-    [location(2)] time: f32,
+	[location(2)] normal: vec4[f32],
+    [location(3)] time: f32,
 	[builtin(position)] pos: vec4[f32]
 }
 
@@ -33,7 +34,7 @@ fn main(input: VertOut) -> FragOut
 	if(input.color.a == 0.0)
 		discard;
 	let output: FragOut;
-	output.color = input.color * u_albedo.Sample(input.uv) * vec4[f32](sin(input.time), 1.0, cos(input.time), 1.0);
+	output.color = input.color * vec4[f32](u_albedo.Sample(input.uv).rgb * 0.25, 1.0);
 	return output;
 }
 

@@ -16,7 +16,7 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 	pipeline_descriptor.fragment_shader = p_water_fragment_shader;
 	pipeline_descriptor.clear_color_attachments = false;
 	pipeline_descriptor.name = "water_forward_pass_pipeline";
-	p_water_pipeline->Init(pipeline_descriptor);
+	p_water_pipeline->Setup(pipeline_descriptor);
 
 	Scop::Vec2ui32 map_size;
 	Scop::MaterialTextures material_params;
@@ -47,18 +47,25 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 		}
 
 		Scop::FirstPerson3D* camera = reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get());
-		std::int32_t x_chunk = static_cast<std::int32_t>(camera->GetPosition().x) / static_cast<std::int32_t>(CHUNK_SIZE.x);
-		std::int32_t z_chunk = static_cast<std::int32_t>(camera->GetPosition().z) / static_cast<std::int32_t>(CHUNK_SIZE.z);
-		m_current_chunk_position = Scop::Vec2i{ x_chunk, z_chunk };
+		Scop::Vec3f camera_position = camera->GetPosition();
+		Scop::Vec2i global_block_position = Scop::Vec2i{
+			static_cast<std::int32_t>(camera_position.x < 0.0f ? camera_position.x - 1.0f : camera_position.x),
+			static_cast<std::int32_t>(camera_position.z < 0.0f ? camera_position.z - 1.0f : camera_position.z),
+		};
+
+		m_current_chunk_position = Scop::Vec2i{
+			static_cast<std::int32_t>(global_block_position.x < 0 ? std::floorf(global_block_position.x / static_cast<float>(CHUNK_SIZE.x)) : global_block_position.x / static_cast<std::int32_t>(CHUNK_SIZE.x)),
+			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floorf(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : global_block_position.y / static_cast<std::int32_t>(CHUNK_SIZE.z)),
+		};
 
 		if(Scop::NonOwningPtr<Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
 		{
-			Scop::Vec3i camera_pos = Scop::Vec3i(std::floor(scene->GetCamera()->GetPosition().x), scene->GetCamera()->GetPosition().y, std::floor(scene->GetCamera()->GetPosition().z));
-			camera_pos.x %= CHUNK_SIZE.x;
-			camera_pos.z %= CHUNK_SIZE.z;
-			camera_pos.x += CHUNK_SIZE.x;
-			camera_pos.z += CHUNK_SIZE.z;
-			post_process_data.underwater = current_chunk->GetBlock(Scop::Vec3i(camera_pos.x % CHUNK_SIZE.x, camera_pos.y, camera_pos.z % CHUNK_SIZE.z)) == static_cast<std::uint32_t>(BlockType::Water);
+			Scop::Vec3i block_position = Scop::Vec3i{
+				global_block_position.x - (m_current_chunk_position.x * static_cast<std::int32_t>(CHUNK_SIZE.x)),
+				static_cast<std::int32_t>(camera_position.y),
+				global_block_position.y - (m_current_chunk_position.y * static_cast<std::int32_t>(CHUNK_SIZE.z)),
+			};
+			post_process_data.underwater = current_chunk->GetBlock(block_position) == static_cast<std::uint32_t>(BlockType::Water);
 		}
 
 		post_process_data.inv_res = Scop::Vec2f{ 1.0f / Scop::ScopEngine::Get().GetWindow().GetWidth(), 1.0f / Scop::ScopEngine::Get().GetWindow().GetHeight() };

@@ -31,10 +31,22 @@ namespace Scop
 
 	class GraphicPipeline : public Pipeline
 	{
+		friend class Render2DPass;
+		friend class FinalPass;
+		friend class ForwardPass;
+		friend class PostProcessPass;
+		friend class SkyboxPass;
+
 		public:
 			GraphicPipeline() = default;
 
-			void Init(GraphicPipelineDescriptor descriptor);
+			inline void Setup(GraphicPipelineDescriptor descriptor)
+			{
+				if(!descriptor.vertex_shader || !descriptor.fragment_shader)
+					FatalError("Vulkan: invalid shaders");
+				m_description = std::move(descriptor);
+			}
+
 			bool BindPipeline(VkCommandBuffer command_buffer, std::size_t framebuffer_index, std::array<float, 4> clear) noexcept;
 			void EndPipeline(VkCommandBuffer command_buffer) noexcept override;
 			void Destroy() noexcept;
@@ -48,6 +60,7 @@ namespace Scop
 			inline ~GraphicPipeline() noexcept { Destroy(); }
 
 		private:
+			void Init(GraphicPipelineDescriptor descriptor);
 			void CreateFramebuffers(const std::vector<NonOwningPtr<Texture>>& render_targets, bool clear_attachments);
 			void TransitionAttachments(VkCommandBuffer cmd = VK_NULL_HANDLE);
 

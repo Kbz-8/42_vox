@@ -65,9 +65,9 @@ option EnableRadialBlur: bool = true;
 fn SampleRadialBlur(uv: vec2[f32]) -> vec4[f32]
 {
     const center = vec2[f32](0.5, 0.5);
-    const blur_strength: f32 = 0.01;
+    const blur_strength: f32 = 0.02;
     const samples: i32 = 16;
-    const fade_start: f32 = -0.1;
+    const fade_start: f32 = 0.0;
 
     let dir: vec2[f32] = uv - center;
     let dist: f32 = length(dir);
@@ -83,7 +83,7 @@ fn SampleRadialBlur(uv: vec2[f32]) -> vec4[f32]
         sample_uv -= step;
     }
     let color = accum_color / f32(samples);
-    let fade: f32 = clamp((dist - fade_start) / (1.0 - fade_start), 0.0, 1.0);
+    let fade: f32 = clamp((dist - fade_start) / (1.0 - fade_start) * 1.3, 0.0, 1.0);
     return color * (1.0 - fade);
 }
 
@@ -105,7 +105,7 @@ fn main(input: VertOut) -> FragOut
     {
         const fog_near: f32 = 0.9;
         const fog_far: f32 = 1.0;
-        const fog_color: vec4[f32] = vec4[f32](0.0, 0.0, 0.25, 1.0);
+        const fog_color: vec4[f32] = vec4[f32](0.001, 0.003, 0.012, 1.0);
         let fog_factor: f32 = (fog_far - depth) / (fog_far - fog_near);
         fog_factor = clamp(fog_factor, 0.0, 1.0);
         output.color = MixVec4f32(fog_color, output.color, fog_factor);

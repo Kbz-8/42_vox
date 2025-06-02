@@ -43,7 +43,6 @@ namespace Scop
 				if(pipeline->GetDescription().depth != NonOwningPtr<DepthImage>{ &scene.GetDepth() })
 				{
 					GraphicPipelineDescriptor descriptor = pipeline->GetDescription();
-					pipeline->Destroy();
 					descriptor.color_attachments = { &render_target };
 					descriptor.depth = &scene.GetDepth();
 					descriptor.renderer = nullptr;

@@ -1,22 +1,24 @@
 [nzsl_version("1.0")]
+[feature(float64)]
 module;
 
 import ViewerData from ScopEngine.ViewerData;
 
 struct VertIn
 {
-    [location(0)] pos: vec4[f32],
-    [location(1)] color: vec4[f32],
-    [location(2)] normal: vec4[f32],
-    [location(3)] uv: vec2[f32]
+	[location(0)] pos: vec4[f32],
+	[location(1)] color: vec4[f32],
+	[location(2)] normal: vec4[f32],
+	[location(3)] uv: vec2[f32]
 }
 
 struct VertOut
 {
-    [location(0)] color: vec4[f32],
-    [location(1)] uv: vec2[f32],
-    [location(2)] time: f32,
-    [builtin(position)] pos: vec4[f32]
+	[location(0)] color: vec4[f32],
+	[location(1)] uv: vec2[f32],
+	[location(2)] normal: vec4[f32],
+	[location(3)] time: f32,
+	[builtin(position)] pos: vec4[f32]
 }
 
 struct ModelData
@@ -27,23 +29,32 @@ struct ModelData
 
 struct CustomData
 {
-    time: f32,
+	time: f64,
 }
 
 external
 {
-    [set(0), binding(0)] viewer_data: uniform[ViewerData],
-    [set(0), binding(1)] data: uniform[CustomData],
-    model: push_constant[ModelData]
+	[set(0), binding(0)] viewer_data: uniform[ViewerData],
+	[set(0), binding(1)] data: uniform[CustomData],
+	model: push_constant[ModelData]
 }
 
 [entry(vert)]
 fn main(input: VertIn) -> VertOut
 {
-    let output: VertOut;
-    output.color = input.color;
-    output.uv = input.uv;
-    output.time = data.time;
-	output.pos = viewer_data.view_proj_matrix * model.matrix * input.pos;
-    return output;
+	let position = model.matrix * vec4[f32](input.pos.xyz, 1.0);
+	if(input.pos.w == 0.0)
+	{
+		const speed: f32 = 0.003;
+		position.y -= 0.2;
+		position.y += (sin(position.x + f32(data.time) * speed) + sin(position.z + f32(data.time) * speed)) * 0.05;
+	}
+
+	let output: VertOut;
+	output.color = input.color;
+	output.uv = input.uv;
+	output.normal = input.normal;
+	output.time = f32(data.time);
+	output.pos = viewer_data.view_proj_matrix * position;
+	return output;
 }

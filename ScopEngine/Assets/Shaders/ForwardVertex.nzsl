@@ -42,7 +42,7 @@ fn main(input: VertIn) -> VertOut
 	output.uv = input.uv;
 	output.norm = normalize(input.normal);
 	output.transformed_norm = mat3[f32](model.normal) * output.norm.xyz;
-	output.frag_position = model.matrix * input.pos;
+	output.frag_position = model.matrix * vec4[f32](input.pos.xyz, 1.0);
 	output.camera_position = viewer_data.camera_position;
 	output.pos = viewer_data.view_proj_matrix * output.frag_position;
 	return output;

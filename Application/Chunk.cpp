@@ -11,6 +11,7 @@ constexpr Scop::Vec2ui ATLAS_SIZE = { 64, 64 };
 constexpr Scop::Vec2f SPRITE_UNIT = Scop::Vec2f(SPRITE_SIZE) / Scop::Vec2f(ATLAS_SIZE);
 
 constexpr std::array<std::array<Scop::Vec2ui, 3>, BlocksCount> BLOCKS_TO_ATLAS = {
+	//                                   TOP                 BOTTOM                   SIDE
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 } }, // Air
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 1, 1 }, Scop::Vec2ui{ 1, 1 }, Scop::Vec2ui{ 1, 1 } }, // Water
 	std::array<Scop::Vec2ui, 3>{ Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 }, Scop::Vec2ui{ 0, 0 } }, // Dirt
@@ -33,7 +34,7 @@ enum class Side : std::uint8_t
 
 struct WaterData
 {
-	float time;
+	double time;
 };
 
 Scop::Vec2f GetAtlasOffset(BlockType type, Side side)
@@ -87,7 +88,7 @@ void Chunk::GenerateMesh()
 				std::vector<std::uint32_t>& index_data = (is_water ? m_water_mesh_index_data : m_mesh_index_data);
 				std::uint32_t& offset = (is_water ? water_offset : mesh_offset);
 
-				Scop::Vec4f base_color = is_water ? Scop::Vec4f{ 0.3f, 0.1f, 0.05f, 0.98f } : Scop::Vec4f{ 1.0f };
+				Scop::Vec4f base_color = is_water ? Scop::Vec4f{ 0.5f, 0.2f, 0.1f, 0.95f } : Scop::Vec4f{ 1.0f };
 				std::uint32_t invalid_limit = is_water ? static_cast<std::uint32_t>(BlockType::Air) : static_cast<std::uint32_t>(BlockType::Water);
 
 				if(GetBlock(Scop::Vec3i(x, y, z + 1)) <= invalid_limit)
@@ -118,6 +119,8 @@ void Chunk::GenerateMesh()
 						else
 							vertex_color = base_color;
 						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						if(is_water && (i == 1 || i == 3) && GetBlock(Scop::Vec3i(x, y + 1, z)) != static_cast<std::uint32_t>(BlockType::Water))
+							vertex_pos.w = 0.0;
 						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
 						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
 					}
@@ -155,6 +158,8 @@ void Chunk::GenerateMesh()
 						else
 							vertex_color = base_color;
 						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						if(is_water && (i == 5 || i == 7) && GetBlock(Scop::Vec3i(x, y + 1, z)) != static_cast<std::uint32_t>(BlockType::Water))
+							vertex_pos.w = 0.0;
 						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
 						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
 					}
@@ -162,7 +167,7 @@ void Chunk::GenerateMesh()
 					offset += 4;
 				}
 
-				if(GetBlock(Scop::Vec3i(x, y + 1, z)) <= invalid_limit)
+				if(std::uint32_t value = GetBlock(Scop::Vec3i(x, y + 1, z)); !is_water ? value <= invalid_limit : value != static_cast<std::uint32_t>(BlockType::Water)) // We want top face water even under blocks
 				{
 					index_data.push_back(offset + 1);
 					index_data.push_back(offset + 0);
@@ -173,8 +178,6 @@ void Chunk::GenerateMesh()
 
 					for(std::uint32_t i = 8; i < 12; i++)
 					{
-						float block_top_y = is_water ? static_cast<float>(y) - 0.2f : static_cast<float>(y);
-
 						Scop::Vec4f vertex_color;
 						if(!is_water)
 						{
@@ -193,7 +196,9 @@ void Chunk::GenerateMesh()
 						}
 						else
 							vertex_color = base_color;
-						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, block_top_y, z);
+						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						if(is_water)
+							vertex_pos.w = 0.0;
 						Scop::Vec2f uv = GetAtlasOffset(type, Side::Top) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
 						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
 					}
@@ -268,6 +273,8 @@ void Chunk::GenerateMesh()
 						else
 							vertex_color = base_color;
 						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						if(is_water && (i == 17 || i == 19) && GetBlock(Scop::Vec3i(x, y + 1, z)) != static_cast<std::uint32_t>(BlockType::Water))
+							vertex_pos.w = 0.0;
 						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
 						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
 					}
@@ -305,6 +312,8 @@ void Chunk::GenerateMesh()
 						else
 							vertex_color = base_color;
 						Scop::Vec4f vertex_pos = BLOCK_MESH[i].position + Scop::Vec3f(x, y, z);
+						if(is_water && (i == 21 || i == 23) && GetBlock(Scop::Vec3i(x, y + 1, z)) != static_cast<std::uint32_t>(BlockType::Water))
+							vertex_pos.w = 0.0;
 						Scop::Vec2f uv = GetAtlasOffset(type, Side::Side) + (Scop::Vec2f(SPRITE_UNIT) * BLOCK_MESH[i].uv);
 						mesh_data.push_back(Scop::Vertex(vertex_pos, vertex_color, BLOCK_MESH[i].normal, uv));
 					}
@@ -325,7 +334,6 @@ void Chunk::UploadMesh()
 
 		Scop::Actor& actor = m_world.GetScene().CreateActor(mesh);
 		actor.GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
-		actor.SetScale(Scop::Vec3f{ 2.0f });
 		actor.SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
 		p_actor = &actor;
 	}
@@ -337,7 +345,6 @@ void Chunk::UploadMesh()
 
 		Scop::Actor& actor = m_world.GetScene().CreateActor(mesh);
 		actor.GetModelRef().SetMaterial(m_world.GetBlockMaterial(), 0);
-		actor.SetScale(Scop::Vec3f{ 2.0f });
 		actor.SetPosition(Scop::Vec3f(m_position.x, 0.0f, m_position.y));
 		actor.SetIsOpaque(false);
 		actor.SetCustomPipeline({
@@ -349,7 +356,7 @@ void Chunk::UploadMesh()
 		auto object_update = [](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Actor> actor, Scop::Inputs& input, float delta)
 		{
 			WaterData* data = actor->GetCustomPipeline()->data.GetDataAs<WaterData>();
-			data->time += delta;
+			data->time = static_cast<double>(SDL_GetTicks64());
 		};
 		using actor_hook = std::function<void(Scop::NonOwningPtr<Scop::Actor>)>;
 		actor.AttachScript(std::make_shared<Scop::NativeActorScript>(actor_hook{}, object_update, actor_hook{}));

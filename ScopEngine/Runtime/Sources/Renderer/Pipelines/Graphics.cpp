@@ -10,10 +10,7 @@ namespace Scop
 {
 	void GraphicPipeline::Init(GraphicPipelineDescriptor descriptor)
 	{
-		if(!descriptor.vertex_shader || !descriptor.fragment_shader)
-			FatalError("Vulkan: invalid shaders");
-
-		m_description = std::move(descriptor);
+		Setup(std::move(descriptor));
 
 		m_description.vertex_shader->SetPipelineInUse(this);
 		m_description.fragment_shader->SetPipelineInUse(this);
