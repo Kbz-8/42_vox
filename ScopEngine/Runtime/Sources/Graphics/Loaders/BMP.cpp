@@ -26,9 +26,9 @@ namespace Scop
 		file.read(reinterpret_cast<char*>(&bpp), sizeof(bpp));
 		file.seekg(54, std::ios_base::beg);
 		if(bpp != 24)
-			Warning("BMP loader: warning while loadeing %, cannot handle yet different color palette sizes", path);
+			Warning("BMP loader: warning while loading %, cannot handle yet different color palette sizes", path);
 		CPUBuffer buffer{ dimensions.x * dimensions.y * 4 };
-		for(std::size_t i = 0; i <= buffer.GetSize(); i += 4)
+		for(std::size_t i = 0; i < buffer.GetSize(); i += 4)
 		{
 			Vec3b data{ 0, 0, 0 };
 			data.x = (file.eof() ? 0x00 : file.get());

@@ -12,17 +12,57 @@ namespace Scop
 	{
 		public:
 			CPUBuffer() {}
-			CPUBuffer(std::size_t size) try : m_data(new std::uint8_t[size]), m_size(size)
+			CPUBuffer(std::size_t size) try : m_data(size > 0 ? std::make_unique<std::uint8_t[]>(size) : nullptr), m_size(size)
 			{}
 			catch(...)
 			{
 				FatalError("memory allocation for a CPU buffer failed");
 			}
 
+			CPUBuffer(const CPUBuffer& other) try : m_data(other.m_size > 0 ? std::make_unique<std::uint8_t[]>(other.m_size) : nullptr), m_size(other.m_size)
+			{
+				if(m_data)
+					std::memcpy(m_data.get(), other.m_data.get(), m_size);
+			}
+			catch (...)
+			{
+				FatalError("memory allocation for a CPU buffer failed");
+			}
+
+			CPUBuffer& operator=(const CPUBuffer& other)
+			{
+				if(this != &other)
+				{
+					if(other.m_data)
+					{
+						std::unique_ptr<std::uint8_t[]> new_data;
+						try
+						{
+							new_data = std::make_unique<std::uint8_t[]>(other.m_size);
+						}
+						catch (...)
+						{
+							FatalError("memory allocation for a CPU buffer failed");
+						}
+						std::memcpy(new_data.get(), other.m_data.get(), other.m_size);
+
+						m_data = std::move(new_data);
+						m_size = other.m_size;
+					}
+					else
+					{
+						m_data.reset();
+						m_size = 0;
+					}
+				}
+				return *this;
+			}
+
 			[[nodiscard]] inline CPUBuffer Duplicate() const
 			{
 				CPUBuffer buffer(m_size);
-				std::memcpy(buffer.GetData(), m_data.get(), m_size);
+				if(m_data)
+					std::memcpy(buffer.GetData(), m_data.get(), m_size);
 				return buffer;
 			}
 
@@ -32,7 +72,7 @@ namespace Scop
 					FatalError("cannot allocate an already allocated CPU buffer");
 				try
 				{
-					m_data = std::make_shared<std::uint8_t[]>(size);
+					m_data = std::make_unique<std::uint8_t[]>(size);
 					m_size = size;
 				}
 				catch(...)
@@ -53,7 +93,7 @@ namespace Scop
 			~CPUBuffer() = default;
 
 		private:
-			std::shared_ptr<std::uint8_t[]> m_data;
+			std::unique_ptr<std::uint8_t[]> m_data;
 			std::size_t m_size = 0;
 	};
 }

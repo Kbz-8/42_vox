@@ -37,7 +37,7 @@ namespace Scop
 			inline void SetOrientation(Quatf orientation) noexcept { m_orientation = orientation; }
 			inline void SetVisibility(bool show) noexcept { m_is_visible = show; }
 			inline void SetIsOpaque(bool opaque) noexcept { m_is_opaque = opaque; }
-			inline void SetCustomPipeline(const CustomPipeline& pipeline) { m_custom_pipeline = pipeline; }
+			inline void SetCustomPipeline(CustomPipeline pipeline) { m_custom_pipeline = std::move(pipeline); }
 
 			[[nodiscard]] inline const Vec3f& GetPosition() const noexcept { return m_position; }
 			[[nodiscard]] inline const Vec3f& GetScale() const noexcept { return m_scale; }
