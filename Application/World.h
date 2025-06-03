@@ -47,6 +47,7 @@ class World
 		void UnloadChunks();
 		void GenerateWorld();
 		void Upload();
+		void SetupLoading();
 
 	private:
 		NoiseCollection m_noisecollection;
@@ -62,6 +63,8 @@ class World
 		Scop::Vec2i m_current_chunk_position;
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;
 		Scop::NonOwningPtr<Scop::Text> p_fps_text;
+		Scop::NonOwningPtr<Scop::Text> p_loading_text;
+		std::atomic_uint32_t m_loading_progress = 0;
 		std::uint32_t m_last_fps_count = 0;
 		bool m_show_loading_screen = true;
 };

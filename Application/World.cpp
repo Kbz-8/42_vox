@@ -24,31 +24,12 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
 	scene.LoadFont(GetResourcesPath() / "OpenSans_Bold.ttf", 32.0f);
-	Scop::Text& text = scene.CreateText("FPS:");
-	text.SetPosition(Scop::Vec2ui{ 30, 30 });
+	Scop::Text& fps_text = scene.CreateText("FPS:");
+	fps_text.SetPosition(Scop::Vec2ui{ 30, 30 });
 
 	std::thread(&World::GenerateWorld, this).detach();
 
-	Scop::Vec2ui32 loading_size;
-	Scop::Sprite& loading = scene.CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "loading.bmp", loading_size), loading_size.x, loading_size.y));
-
-	auto loading_update = [this, loading_size](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)
-	{
-		if(!m_show_loading_screen && Scop::CommandLineInterface::Get().HasFlag("no-loading-screen"))
-		{
-			sprite->SetColor(Scop::Vec4f{ 0.0f });
-			return;
-		}
-		Scop::Vec2f scale = Scop::Vec2f{
-			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetWidth()) / static_cast<float>(loading_size.x),
-			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetHeight()) / static_cast<float>(loading_size.y),
-		};
-		sprite->SetScale(scale);
-		sprite->SetPosition(Scop::Vec2ui{ 0, 0 });
-	};
-
-	using sprite_hook = std::function<void(Scop::NonOwningPtr<Scop::Sprite>)>;
-	loading.AttachScript(std::make_shared<Scop::NativeSpriteScript>(sprite_hook{}, loading_update, sprite_hook{}));
+	SetupLoading();
 
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
@@ -187,28 +168,52 @@ void World::GenerateWorld()
 		}
 		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
 
-		Scop::Vec2i x_range{ m_current_chunk_position.x - RENDER_DISTANCE - 1, m_current_chunk_position.x + RENDER_DISTANCE + 1 };
-		Scop::Vec2i z_range{ m_current_chunk_position.y - RENDER_DISTANCE - 1, m_current_chunk_position.y + RENDER_DISTANCE + 1 };
-
-		for(std::int32_t x = x_range.x; x <= x_range.y; x++)
 		{
-			for(std::int32_t z = z_range.x; z <= z_range.y; z++)
+			Scop::Vec2i x_range{ m_current_chunk_position.x - RENDER_DISTANCE - 1, m_current_chunk_position.x + RENDER_DISTANCE + 1 };
+			Scop::Vec2i z_range{ m_current_chunk_position.y - RENDER_DISTANCE - 1, m_current_chunk_position.y + RENDER_DISTANCE + 1 };
+			std::size_t range = (RENDER_DISTANCE + RENDER_DISTANCE + 2) * 2;
+
+			float progress = 0.0f;
+			m_loading_progress = 0;
+
+			float i = 0;
+			for(std::int32_t x = x_range.x; x <= x_range.y; x++, i++)
 			{
-				QUIT_CHECK();
-				auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
-				res.first->second.GenerateChunk();
-				if(!res.first->second.GetActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
-					mesh_generation_queue.push(std::ref(res.first->second));
+				for(std::int32_t z = z_range.x; z <= z_range.y; z++)
+				{
+					QUIT_CHECK();
+					auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
+					res.first->second.GenerateChunk();
+
+					progress = (i / range) * 30;
+					m_loading_progress = progress;
+
+					if(!res.first->second.GetActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
+						mesh_generation_queue.push(std::ref(res.first->second));
+				}
 			}
 		}
-		while(!mesh_generation_queue.empty())
+
 		{
-			QUIT_CHECK();
-			auto chunk = mesh_generation_queue.front();
-			mesh_generation_queue.pop();
-			chunk.get().GenerateMesh();
-			m_chunks_to_upload.Push(chunk);
+			float progress = 30.0f;
+			m_loading_progress = 30;
+
+			std::size_t range = mesh_generation_queue.size() - 30;
+
+			for(float i = 0.0f; !mesh_generation_queue.empty(); i++)
+			{
+				QUIT_CHECK();
+				auto chunk = mesh_generation_queue.front();
+				mesh_generation_queue.pop();
+				chunk.get().GenerateMesh();
+				m_chunks_to_upload.Push(chunk);
+
+				progress = ((i - 30.0f) / range) * 70;
+				m_loading_progress = progress + 30;
+			}
 		}
+
+		m_loading_progress = 100;
 		m_generation_status = GenerationState::Finished;
 	}
 
@@ -228,4 +233,66 @@ void World::Upload()
 	}
 	Scop::RenderCore::Get().WaitQueueIdle(KVF_GRAPHICS_QUEUE);
 	Scop::RenderCore::Get().ShouldStackSubmits(false);
+}
+
+void World::SetupLoading()
+{
+	Scop::CPUBuffer default_pixels{ sizeof(std::uint32_t) };
+	default_pixels.GetDataAs<std::uint32_t>()[0] = 0xFFFFFFFF;
+	Scop::Sprite& progress_bar = m_scene.CreateSprite(std::make_shared<Scop::Texture>(std::move(default_pixels), 1, 1));
+
+	Scop::Text& loading_text = m_scene.CreateText("Loading...");
+
+	Scop::Vec2ui32 loading_size;
+	Scop::Sprite& loading = m_scene.CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "loading.bmp", loading_size), loading_size.x, loading_size.y));
+
+	auto loading_update = [this, loading_size, &progress_bar, &loading_text](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)
+	{
+		static bool just_ended_loading = false;
+		static std::uint32_t last_percentage = 0;
+
+		if(!m_show_loading_screen || Scop::CommandLineInterface::Get().HasFlag("no-loading-screen"))
+		{
+			if(!just_ended_loading)
+			{
+				sprite->SetColor(Scop::Vec4f{ 0.0f });
+				progress_bar.SetColor(Scop::Vec4f{ 0.0f });
+				reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get())->EnableCamera();
+				if(p_loading_text)
+					m_scene.RemoveText(*p_loading_text);
+				m_scene.RemoveText(loading_text);
+				m_scene.RemoveSprite(progress_bar);
+				just_ended_loading = true;
+			}
+			return;
+		}
+		reinterpret_cast<Scop::FirstPerson3D*>(m_scene.GetCamera().get())->DisableCamera();
+		Scop::Vec2f scale = Scop::Vec2f{
+			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetWidth()) / static_cast<float>(loading_size.x),
+			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetHeight()) / static_cast<float>(loading_size.y),
+		};
+		sprite->SetScale(scale);
+		sprite->SetPosition(Scop::Vec2ui{ 0, 0 });
+
+		if(last_percentage != m_loading_progress)
+		{
+			last_percentage = m_loading_progress;
+			if(p_loading_text)
+				m_scene.RemoveText(*p_loading_text);
+			p_loading_text = &m_scene.CreateText(std::to_string(m_loading_progress) + '%');
+		}
+		if(p_loading_text)
+			p_loading_text->SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) + 70, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
+		loading_text.SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) - 70, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
+
+		Scop::Vec2ui progress_size = Scop::Vec2ui{
+			static_cast<std::uint32_t>(static_cast<float>(m_loading_progress) * 4.0f),
+			25
+		};
+		progress_bar.SetScale(Scop::Vec2f(progress_size));
+		progress_bar.SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) - 200, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - (progress_size.y >> 1) + 25 });
+	};
+
+	using sprite_hook = std::function<void(Scop::NonOwningPtr<Scop::Sprite>)>;
+	loading.AttachScript(std::make_shared<Scop::NativeSpriteScript>(sprite_hook{}, loading_update, sprite_hook{}));
 }

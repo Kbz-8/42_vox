@@ -14,6 +14,9 @@ namespace Scop
 
 			void Update(class Inputs& input, float aspect, float timestep) override;
 
+			inline constexpr void EnableCamera() noexcept { m_inputs_blocked = false; }
+			inline constexpr void DisableCamera() noexcept { m_inputs_blocked = true; }
+
 			[[nodiscard]] inline constexpr std::string GetCameraType() override { return "FirstPerson3D"; }
 			[[nodiscard]] const Vec3f& GetPosition() const noexcept override { return m_position; }
 			[[nodiscard]] const Vec3f& GetUp() const noexcept { return c_up; }

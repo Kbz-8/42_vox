@@ -16,17 +16,6 @@ namespace Scop
 		m_view = Mat4f::LookAt(m_position, m_target, c_up);
 		m_proj = Mat4f::Perspective(RadianAnglef(m_fov), aspect, 0.1f, 100'000.f);
 
-		if(input.IsKeyPressed(SDL_SCANCODE_F1))
-		{
-			m_inputs_blocked = true;
-			input.ReleaseMouse();
-		}
-		if(input.IsKeyPressed(SDL_SCANCODE_F2))
-		{
-			m_inputs_blocked = false;
-			input.GrabMouse();
-		}
-
 		if(m_inputs_blocked)
 			return;
 
