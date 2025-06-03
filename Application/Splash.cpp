@@ -1,5 +1,6 @@
 #include <ScopCore.h>
 #include <ScopGraphics.h>
+#include <Utils.h>
 #include <thread>
 
 Scop::Scene& SplashScreen()
@@ -14,7 +15,11 @@ Scop::Scene& SplashScreen()
 	Scop::Sprite& splash = scene.CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(Scop::ScopEngine::Get().GetAssetsPath() / "Images/splashscreen.bmp", splash_size), splash_size.x, splash_size.y));
 	splash.SetPosition(Scop::Vec2ui{ Scop::ScopEngine::Get().GetWindow().GetWidth() / 2 - splash_size.x / 2, Scop::ScopEngine::Get().GetWindow().GetHeight() / 2 - splash_size.y / 2 });
 
-	auto splash_update = [splash_size](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)
+	scene.LoadFont(GetResourcesPath() / "Font.ttf", 16.0f);
+	Scop::Text& copyright_text = scene.CreateText("Copyright maldavid Studios");
+	copyright_text.SetScale(Scop::Vec2f{ 0.75f });
+
+	auto splash_update = [splash_size, &copyright_text](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)
 	{
 		using namespace std::chrono_literals;
 
@@ -27,6 +32,7 @@ Scop::Scene& SplashScreen()
 		x += 0.02f;
 		sprite->SetColor(color); 
 		sprite->SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) - (splash_size.x >> 1), (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - (splash_size.y >> 1) });
+		copyright_text.SetPosition(Scop::Vec2ui{ Scop::ScopEngine::Get().GetWindow().GetWidth() - 175, Scop::ScopEngine::Get().GetWindow().GetHeight() - 20 });
 		if(color.w <= 0.02f)
 			scene->SwitchToChild("main");
 

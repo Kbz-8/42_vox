@@ -23,20 +23,25 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 	material_params.albedo = std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "atlas.bmp", map_size), map_size.x, map_size.y);
 	p_block_material = std::make_shared<Scop::Material>(material_params);
 
-	scene.LoadFont(GetResourcesPath() / "OpenSans_Bold.ttf", 32.0f);
+	scene.LoadFont(GetResourcesPath() / "Font.ttf", 16.0f);
 	Scop::Text& fps_text = scene.CreateText("FPS:");
 	fps_text.SetPosition(Scop::Vec2ui{ 30, 30 });
+
+	Scop::Text& copyright_text = scene.CreateText("Copyright maldavid Studios");
+	copyright_text.SetScale(Scop::Vec2f{ 0.75f });
 
 	std::thread(&World::GenerateWorld, this).detach();
 
 	SetupLoading();
 
-	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
+	auto narrator_update = [this, &copyright_text](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
 		static bool generate = true;
 		static bool generation_debounce = false;
 		static bool wireframe_debounce = false;
 		static PostProcessData post_process_data;
+
+		copyright_text.SetPosition(Scop::Vec2ui{ Scop::ScopEngine::Get().GetWindow().GetWidth() - 175, Scop::ScopEngine::Get().GetWindow().GetHeight() - 20 });
 
 		m_fps_counter.Update();
 		if(m_fps_counter.GetFPSCount() != m_last_fps_count)
@@ -185,7 +190,7 @@ void World::GenerateWorld()
 					auto res = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 					res.first->second.GenerateChunk();
 
-					progress = (i / range) * 30;
+					progress = (i / range) * 30.0f;
 					m_loading_progress = progress;
 
 					if(!res.first->second.GetActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
@@ -282,8 +287,8 @@ void World::SetupLoading()
 			p_loading_text = &m_scene.CreateText(std::to_string(m_loading_progress) + '%');
 		}
 		if(p_loading_text)
-			p_loading_text->SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) + 70, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
-		loading_text.SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) - 70, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
+			p_loading_text->SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) + 40, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
+		loading_text.SetPosition(Scop::Vec2ui{ (Scop::ScopEngine::Get().GetWindow().GetWidth() >> 1) - 40, (Scop::ScopEngine::Get().GetWindow().GetHeight() >> 1) - 55 });
 
 		Scop::Vec2ui progress_size = Scop::Vec2ui{
 			static_cast<std::uint32_t>(static_cast<float>(m_loading_progress) * 4.0f),
