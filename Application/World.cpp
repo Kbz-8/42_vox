@@ -29,6 +29,27 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 
 	std::thread(&World::GenerateWorld, this).detach();
 
+	Scop::Vec2ui32 loading_size;
+	Scop::Sprite& loading = scene.CreateSprite(std::make_shared<Scop::Texture>(Scop::LoadBMPFile(GetResourcesPath() / "loading.bmp", loading_size), loading_size.x, loading_size.y));
+
+	auto loading_update = [this, loading_size](Scop::NonOwningPtr<Scop::Scene> scene, Scop::NonOwningPtr<Scop::Sprite> sprite, Scop::Inputs& input, float delta)
+	{
+		if(!m_show_loading_screen && Scop::CommandLineInterface::Get().HasFlag("no-loading-screen"))
+		{
+			sprite->SetColor(Scop::Vec4f{ 0.0f });
+			return;
+		}
+		Scop::Vec2f scale = Scop::Vec2f{
+			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetWidth()) / static_cast<float>(loading_size.x),
+			static_cast<float>(Scop::ScopEngine::Get().GetWindow().GetHeight()) / static_cast<float>(loading_size.y),
+		};
+		sprite->SetScale(scale);
+		sprite->SetPosition(Scop::Vec2ui{ 0, 0 });
+	};
+
+	using sprite_hook = std::function<void(Scop::NonOwningPtr<Scop::Sprite>)>;
+	loading.AttachScript(std::make_shared<Scop::NativeSpriteScript>(sprite_hook{}, loading_update, sprite_hook{}));
+
 	auto narrator_update = [this](Scop::NonOwningPtr<Scop::Scene> scene, Scop::Inputs& input, float delta)
 	{
 		static bool generate = true;
@@ -54,8 +75,8 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 		};
 
 		m_current_chunk_position = Scop::Vec2i{
-			static_cast<std::int32_t>(global_block_position.x < 0 ? std::floorf(global_block_position.x / static_cast<float>(CHUNK_SIZE.x)) : global_block_position.x / static_cast<std::int32_t>(CHUNK_SIZE.x)),
-			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floorf(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : global_block_position.y / static_cast<std::int32_t>(CHUNK_SIZE.z)),
+			static_cast<std::int32_t>(global_block_position.x < 0 ? std::floorf(global_block_position.x / static_cast<float>(CHUNK_SIZE.x)) : static_cast<float>(global_block_position.x) / static_cast<std::int32_t>(CHUNK_SIZE.x)),
+			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floorf(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : static_cast<float>(global_block_position.y) / static_cast<std::int32_t>(CHUNK_SIZE.z)),
 		};
 
 		if(Scop::NonOwningPtr<Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
@@ -90,7 +111,10 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 					m_generation_status = GenerationState::Working;
 				}
 				else if(m_generation_status == GenerationState::Finished)
+				{
 					m_generation_status = GenerationState::Ready;
+					m_show_loading_screen = false;
+				}
 				m_previous_chunk_position = m_current_chunk_position;
 			}
 			Upload();

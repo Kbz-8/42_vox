@@ -23,8 +23,8 @@ struct ViewerData
 
 struct SpriteData
 {
+    model_matrix: mat4[f32],
 	color: vec4[f32],
-	position: vec2[f32]
 }
 
 external
@@ -36,10 +36,11 @@ external
 [entry(vert)]
 fn main(input: VertIn) -> VertOut
 {
+    let position: vec4[f32] = vec4[f32](input.pos.xy, 0.0, 1.0);
 	input.uv.x *= -1.0;
 	let output: VertOut;
 	output.uv = input.uv;
 	output.color = model.color;
-	output.pos = viewer_data.projection_matrix * vec4[f32](input.pos.xy + model.position, 0.0, 1.0);
+	output.pos = viewer_data.projection_matrix * model.model_matrix * position;
 	return output;
 }

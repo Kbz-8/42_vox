@@ -10,8 +10,8 @@ namespace Scop
 {
 	struct SpriteData
 	{
+		Mat4f model_matrix;
 		Vec4f color;
-		Vec2f position;
 	};
 
 	struct ViewerData2D
@@ -88,8 +88,15 @@ namespace Scop
 		for(const auto& [_, sprite] : scene.GetSprites())
 		{
 			SpriteData sprite_data;
-			sprite_data.position = Vec2f{ static_cast<float>(sprite.GetPosition().x), static_cast<float>(sprite.GetPosition().y) };
 			sprite_data.color = sprite.GetColor();
+
+			Mat4f translation_matrix = Mat4f::Identity().ApplyTranslation(Vec3f{ Vec2f(sprite.GetPosition()), 0.0f });
+			Mat4f scale_matrix = Mat4f::Identity().ApplyScale(Vec3f{ sprite.GetScale(), 1.0f });
+
+			sprite_data.model_matrix = Mat4f::Identity();
+			sprite_data.model_matrix.ConcatenateTransform(scale_matrix);
+			sprite_data.model_matrix.ConcatenateTransform(translation_matrix);
+
 			if(!sprite.IsSetInit())
 				const_cast<Sprite&>(sprite).UpdateDescriptorSet(p_texture_set);
 			const_cast<Sprite&>(sprite).Bind(frame_index, cmd);
@@ -101,8 +108,15 @@ namespace Scop
 		for(const auto& [_, text] : scene.GetTexts())
 		{
 			SpriteData sprite_data;
-			sprite_data.position = Vec2f{ static_cast<float>(text.GetPosition().x), static_cast<float>(text.GetPosition().y) };
 			sprite_data.color = text.GetColor();
+
+			Mat4f translation_matrix = Mat4f::Identity().ApplyTranslation(Vec3f{ Vec2f(text.GetPosition()), 0.0f });
+			Mat4f scale_matrix = Mat4f::Identity().ApplyScale(Vec3f{ text.GetScale(), 1.0f });
+
+			sprite_data.model_matrix = Mat4f::Identity();
+			sprite_data.model_matrix.ConcatenateTransform(scale_matrix);
+			sprite_data.model_matrix.ConcatenateTransform(translation_matrix);
+
 			if(!text.IsSetInit())
 				const_cast<Text&>(text).UpdateDescriptorSet(p_texture_set);
 			const_cast<Text&>(text).Bind(frame_index, cmd);

@@ -63,6 +63,7 @@ class World
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;
 		Scop::NonOwningPtr<Scop::Text> p_fps_text;
 		std::uint32_t m_last_fps_count = 0;
+		bool m_show_loading_screen = true;
 };
 
 #endif
