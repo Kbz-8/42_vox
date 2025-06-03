@@ -9,10 +9,11 @@
 #include <Chunk.h>
 #include <Utils.h>
 #include <FpsCounter.h>
+#include <ThreadPool.h>
 #include <NoiseCollection.h>
 
 constexpr std::uint8_t RENDER_DISTANCE = 15;
-constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 3;
+constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 12;
 
 enum class GenerationState: std::uint8_t
 {
@@ -27,7 +28,6 @@ struct PostProcessData
 	Scop::Vec2f inv_res;
 	std::int32_t underwater;
 };
-
 
 class World
 {
@@ -52,6 +52,7 @@ class World
 	private:
 		NoiseCollection m_noisecollection;
 		FpsCounter m_fps_counter;
+		ThreadPool m_thread_pool;
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
 		ThreadSafeQueue<std::reference_wrapper<Chunk>> m_chunks_to_upload;
 		std::shared_ptr<Scop::Material> p_block_material;
@@ -64,7 +65,7 @@ class World
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;
 		Scop::NonOwningPtr<Scop::Text> p_fps_text;
 		Scop::NonOwningPtr<Scop::Text> p_loading_text;
-		std::atomic_uint32_t m_loading_progress = 0;
+		std::atomic<float> m_loading_progress = 0.0f;
 		std::uint32_t m_last_fps_count = 0;
 		bool m_show_loading_screen = true;
 };

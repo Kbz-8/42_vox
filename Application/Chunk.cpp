@@ -63,7 +63,7 @@ void Chunk::GenerateChunk()
 
 void Chunk::GenerateMesh()
 {
-	if(!m_mesh_data.empty())
+	if(p_actor || p_water_actor)
 		return;
 
 	std::uint32_t mesh_offset = 0;
