@@ -19,6 +19,7 @@ CXXFLAGS = -std=c++20 -I ScopEngine/Runtime/Includes -I Application -I ScopEngin
 LDFLAGS = -lSDL2 ScopEngine/Bin/engine.a
 
 DEBUG ?= false
+TSAN ?= false
 MODE = "release"
 
 NZSLC = ./ScopEngine/Assets/Vendors/nzslc.x86_64
@@ -41,6 +42,11 @@ ifeq ($(DEBUG), true)
 else
 	MODE := $(_RESET)$(_GREEN)$(_BOLD)Release$(_RESET)$(_GREEN)
 	COLOR := $(_GREEN)
+endif
+
+ifeq ($(TSAN), true)
+	CXXFLAGS += -fsanitize=thread
+	LDFLAGS += -fsanitize=thread
 endif
 
 JOBS = $(patsubst -j%,%,$(filter -j%,$(MAKEFLAGS)))

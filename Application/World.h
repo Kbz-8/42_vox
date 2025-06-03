@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <unordered_map>
+#include <shared_mutex>
 
 #include <ScopGraphics.h>
 
@@ -13,7 +14,7 @@
 #include <NoiseCollection.h>
 
 constexpr std::uint8_t RENDER_DISTANCE = 15;
-constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 12;
+constexpr std::uint8_t CHUNKS_UPLOAD_PER_FRAME = 3;
 
 enum class GenerationState: std::uint8_t
 {
@@ -38,7 +39,7 @@ class World
 		[[nodiscard]] inline std::shared_ptr<Scop::Material> GetBlockMaterial() const { return p_block_material; }
 		[[nodiscard]] inline std::shared_ptr<Scop::GraphicPipeline> GetWaterPipeline() const { return p_water_pipeline; }
 
-		[[nodiscard]] Scop::NonOwningPtr<Chunk> GetChunk(Scop::Vec2i position);
+		[[nodiscard]] Scop::NonOwningPtr<const Chunk> GetChunk(Scop::Vec2i position) const;
 		[[nodiscard]] NoiseCollection& GetNoiseGenerator() noexcept { return m_noisecollection; }
 
 		~World();
@@ -59,9 +60,10 @@ class World
 		std::shared_ptr<Scop::GraphicPipeline> p_water_pipeline;
 		std::shared_ptr<Scop::Shader> p_water_vertex_shader;
 		std::shared_ptr<Scop::Shader> p_water_fragment_shader;
+		mutable std::shared_mutex m_chunk_mutex;
 		Scop::Scene& m_scene;
 		Scop::Vec2i m_previous_chunk_position;
-		Scop::Vec2i m_current_chunk_position;
+		std::atomic<Scop::Vec2i> m_current_chunk_position;
 		std::atomic<GenerationState> m_generation_status = GenerationState::Ready;
 		Scop::NonOwningPtr<Scop::Text> p_fps_text;
 		Scop::NonOwningPtr<Scop::Text> p_loading_text;

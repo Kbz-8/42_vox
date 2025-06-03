@@ -16,7 +16,7 @@ class ThreadPool
 		inline void WaitForAllTasks() const
 		{
 			using namespace std::chrono_literals;
-			for(; m_waiting_count != m_concurency;)
+			for(; m_waiting_count != m_concurency && !m_tasks.IsEmpty();)
 				std::this_thread::sleep_for(10ms);
 		}
 		~ThreadPool();

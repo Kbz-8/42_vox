@@ -52,12 +52,18 @@ void Chunk::GenerateChunk()
 	if(p_actor)
 		return;
 	for(auto& y: m_data)
+	{
+		std::unique_lock guard(m_data_mutex);
 		std::memset(y.data(), 0, y.size() * sizeof(std::uint32_t));
+	}
 
 	for(std::uint32_t x = 0; x < CHUNK_SIZE.x; x++)
 	{
 		for(std::uint32_t z = 0; z < CHUNK_SIZE.z; z++)
+		{
+			std::unique_lock guard(m_data_mutex);
 			std::memcpy(m_data[POS_TO_INDEX(x, z)].data(), m_world.GetNoiseGenerator().GetBlocks(m_position + Scop::Vec2i(x, z)).data(), CHUNK_SIZE.y * sizeof(std::uint32_t));
+		}
 	}
 }
 
@@ -370,23 +376,24 @@ std::uint32_t Chunk::GetBlock(Scop::Vec3i position) const noexcept
 		return static_cast<std::uint32_t>(BlockType::Dirt);
 	if(position.x < 0) [[unlikely]]
 	{
-		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x - 1, m_offset.y });
+		Scop::NonOwningPtr<const Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x - 1, m_offset.y });
 		return neighbour ? neighbour->GetBlock(Scop::Vec3i(CHUNK_SIZE.x - 1, position.y, position.z)) : static_cast<std::uint32_t>(BlockType::Dirt);
 	}
 	if(position.x >= CHUNK_SIZE.x) [[unlikely]]
 	{
-		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x + 1, m_offset.y });
+		Scop::NonOwningPtr<const Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x + 1, m_offset.y });
 		return neighbour ? neighbour->GetBlock(Scop::Vec3i(0, position.y, position.z)) : static_cast<std::uint32_t>(BlockType::Dirt);
 	}
 	if(position.z < 0) [[unlikely]]
 	{
-		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y - 1 });
+		Scop::NonOwningPtr<const Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y - 1 });
 		return neighbour ? neighbour->GetBlock(Scop::Vec3i(position.x, position.y, CHUNK_SIZE.x - 1)) : static_cast<std::uint32_t>(BlockType::Dirt);
 	}
 	if(position.z >= CHUNK_SIZE.z) [[unlikely]]
 	{
-		Scop::NonOwningPtr<Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y + 1 });
+		Scop::NonOwningPtr<const Chunk> neighbour = m_world.GetChunk(Scop::Vec2i{ m_offset.x, m_offset.y + 1 });
 		return neighbour ? neighbour->GetBlock(Scop::Vec3i(position.x, position.y, 0)) : static_cast<std::uint32_t>(BlockType::Dirt);
 	}
+	std::shared_lock guard(m_data_mutex);
 	return m_data[POS_TO_INDEX(position.x, position.z)][position.y];
 }

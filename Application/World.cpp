@@ -63,12 +63,12 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floorf(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : static_cast<float>(global_block_position.y) / static_cast<std::int32_t>(CHUNK_SIZE.z)),
 		};
 
-		if(Scop::NonOwningPtr<Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
+		if(Scop::NonOwningPtr<const Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
 		{
 			Scop::Vec3i block_position = Scop::Vec3i{
-				global_block_position.x - (m_current_chunk_position.x * static_cast<std::int32_t>(CHUNK_SIZE.x)),
+				global_block_position.x - (m_current_chunk_position.load().x * static_cast<std::int32_t>(CHUNK_SIZE.x)),
 				static_cast<std::int32_t>(camera_position.y),
-				global_block_position.y - (m_current_chunk_position.y * static_cast<std::int32_t>(CHUNK_SIZE.z)),
+				global_block_position.y - (m_current_chunk_position.load().y * static_cast<std::int32_t>(CHUNK_SIZE.z)),
 			};
 			post_process_data.underwater = current_chunk->GetBlock(block_position) == static_cast<std::uint32_t>(BlockType::Water);
 		}
@@ -87,7 +87,7 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 
 		if(generate)
 		{
-			if(m_generation_status != GenerationState::Ready || m_current_chunk_position != m_previous_chunk_position)
+			if(m_generation_status != GenerationState::Ready || m_current_chunk_position.load() != m_previous_chunk_position)
 			{
 				if(m_generation_status == GenerationState::Ready)
 				{
@@ -128,11 +128,13 @@ World::~World()
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for(16ms);
 	}
+	m_thread_pool.WaitForAllTasks();
 }
 
-[[nodiscard]] Scop::NonOwningPtr<Chunk> World::GetChunk(Scop::Vec2i position)
+[[nodiscard]] Scop::NonOwningPtr<const Chunk> World::GetChunk(Scop::Vec2i position) const
 {
-	auto it = m_chunks.find(position);
+	std::shared_lock guard(m_chunk_mutex);
+	const auto it = m_chunks.find(position);
 	if(it == m_chunks.end())
 		return nullptr;
 	return &it->second;
@@ -143,15 +145,18 @@ void World::UnloadChunks()
 	for(auto it = m_chunks.begin(); it != m_chunks.end();)
 	{
 		Scop::Vec2i pos = it->first;
-		std::uint32_t x_dist = std::abs(pos.x - m_current_chunk_position.x);
-		std::uint32_t z_dist = std::abs(pos.y - m_current_chunk_position.y);
+		std::uint32_t x_dist = std::abs(pos.x - m_current_chunk_position.load().x);
+		std::uint32_t z_dist = std::abs(pos.y - m_current_chunk_position.load().y);
 		if(RENDER_DISTANCE < x_dist || RENDER_DISTANCE < z_dist)
 		{
 			if(it->second.GetActor())
 				m_scene.RemoveActor(*it->second.GetActor());
 			if(it->second.GetWaterActor())
 				m_scene.RemoveActor(*it->second.GetWaterActor());
-			it = m_chunks.erase(it);
+			{
+				std::unique_lock guard(m_chunk_mutex);
+				it = m_chunks.erase(it);
+			}
 		}
 		else
 			++it;
@@ -176,8 +181,8 @@ void World::GenerateWorld()
 
 		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
 
-		Scop::Vec2i x_range{ m_current_chunk_position.x - RENDER_DISTANCE - 1, m_current_chunk_position.x + RENDER_DISTANCE + 1 };
-		Scop::Vec2i z_range{ m_current_chunk_position.y - RENDER_DISTANCE - 1, m_current_chunk_position.y + RENDER_DISTANCE + 1 };
+		Scop::Vec2i x_range{ m_current_chunk_position.load().x - RENDER_DISTANCE - 1, m_current_chunk_position.load().x + RENDER_DISTANCE + 1 };
+		Scop::Vec2i z_range{ m_current_chunk_position.load().y - RENDER_DISTANCE - 1, m_current_chunk_position.load().y + RENDER_DISTANCE + 1 };
 		std::size_t range = (RENDER_DISTANCE + RENDER_DISTANCE + 2) * 2;
 
 		m_loading_progress = 0.0f;
@@ -187,13 +192,17 @@ void World::GenerateWorld()
 			for(std::int32_t z = z_range.x; z <= z_range.y; z++)
 			{
 				QUIT_CHECK();
-				auto [chunk_data, _] = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
+
+				std::unordered_map<Scop::Vec2i, Chunk>::iterator chunk_data;
+				{
+					std::unique_lock guard(m_chunk_mutex);
+					chunk_data = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z }).first;
+				}
 				chunk_data->second.GenerateChunk();
+				if(!chunk_data->second.GetActor() && !chunk_data->second.GetWaterActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
+					mesh_generation_queue.push(std::ref(chunk_data->second));
 
 				m_loading_progress = std::min(m_loading_progress + (1.0f / LIMIT) * range, LIMIT);
-
-				if(!chunk_data->second.GetActor() || !chunk_data->second.GetWaterActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
-					mesh_generation_queue.push(std::ref(chunk_data->second));
 			}
 		}
 

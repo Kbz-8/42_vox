@@ -2,6 +2,7 @@
 #define CHUNK_H
 
 #include <vector>
+#include <shared_mutex>
 
 #include <ScopGraphics.h>
 #include <ScopMaths.h>
@@ -31,6 +32,7 @@ class Chunk
 		std::vector<Scop::Vertex> m_water_mesh_data;
 		std::vector<std::uint32_t> m_water_mesh_index_data;
 		std::array<std::array<std::uint32_t, CHUNK_SIZE.y>, CHUNK_SIZE.x * CHUNK_SIZE.z> m_data;
+		mutable std::shared_mutex m_data_mutex;
 		Scop::Vec2i m_offset; // In chunks
 		Scop::Vec2i m_position; // In blocks
 		class World& m_world;
