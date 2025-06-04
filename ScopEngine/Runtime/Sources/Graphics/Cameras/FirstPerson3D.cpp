@@ -45,10 +45,16 @@ namespace Scop
 		if(input.IsKeyPressed(SDL_SCANCODE_SPACE))
 			m_mov += c_up;
 
+		/*
 		if(input.IsMouseWheelUp())
 			m_speed_factor *= 1.5f;
 		if(input.IsMouseWheelDown())
 			m_speed_factor /= 1.5f;
+		*/
+		if(input.IsKeyPressed(SDL_SCANCODE_Q))
+			m_speed_factor = 20.0f;
+		else
+			m_speed_factor = 1.0f;
 		m_position += m_mov * c_speed * m_speed_factor * timestep;
 	}
 
