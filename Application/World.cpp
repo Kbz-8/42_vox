@@ -59,8 +59,8 @@ World::World(Scop::Scene& scene) : m_noisecollection(42), p_water_pipeline(std::
 		};
 
 		m_current_chunk_position = Scop::Vec2i{
-			static_cast<std::int32_t>(global_block_position.x < 0 ? std::floorf(global_block_position.x / static_cast<float>(CHUNK_SIZE.x)) : static_cast<float>(global_block_position.x) / static_cast<std::int32_t>(CHUNK_SIZE.x)),
-			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floorf(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : static_cast<float>(global_block_position.y) / static_cast<std::int32_t>(CHUNK_SIZE.z)),
+			static_cast<std::int32_t>(global_block_position.x < 0 ? std::floor(global_block_position.x / static_cast<float>(CHUNK_SIZE.x)) : static_cast<float>(global_block_position.x) / static_cast<std::int32_t>(CHUNK_SIZE.x)),
+			static_cast<std::int32_t>(global_block_position.y < 0 ? std::floor(global_block_position.y / static_cast<float>(CHUNK_SIZE.z)) : static_cast<float>(global_block_position.y) / static_cast<std::int32_t>(CHUNK_SIZE.z)),
 		};
 
 		if(Scop::NonOwningPtr<const Chunk> current_chunk = GetChunk(m_current_chunk_position); current_chunk)
@@ -180,9 +180,17 @@ void World::GenerateWorld()
 		}
 
 		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
+		Scop::Vec2i current_chunk = m_current_chunk_position.load();
 
-		Scop::Vec2i x_range{ m_current_chunk_position.load().x - RENDER_DISTANCE - 1, m_current_chunk_position.load().x + RENDER_DISTANCE + 1 };
-		Scop::Vec2i z_range{ m_current_chunk_position.load().y - RENDER_DISTANCE - 1, m_current_chunk_position.load().y + RENDER_DISTANCE + 1 };
+		Scop::Vec2i x_range{
+			current_chunk.x - RENDER_DISTANCE - 1,
+			current_chunk.x + RENDER_DISTANCE + 1
+		};
+		Scop::Vec2i z_range{
+			current_chunk.y - RENDER_DISTANCE - 1,
+			current_chunk.y + RENDER_DISTANCE + 1
+		};
+
 		std::size_t range = (RENDER_DISTANCE + RENDER_DISTANCE + 2) * 2;
 
 		m_loading_progress = 0.0f;
