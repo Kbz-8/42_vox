@@ -128,7 +128,6 @@ World::~World()
 		using namespace std::chrono_literals;
 		std::this_thread::sleep_for(16ms);
 	}
-	m_thread_pool.WaitForAllTasks();
 }
 
 [[nodiscard]] Scop::NonOwningPtr<const Chunk> World::GetChunk(Scop::Vec2i position) const
@@ -166,7 +165,7 @@ void World::UnloadChunks()
 #define QUIT_CHECK() if(m_generation_status == GenerationState::Quitting) goto quit
 void World::GenerateWorld()
 {
-	constexpr float LIMIT = 80.0f;
+	std::vector<std::thread> pool;
 
 	for(;;)
 	{
@@ -179,7 +178,7 @@ void World::GenerateWorld()
 			continue;
 		}
 
-		std::queue<std::reference_wrapper<Chunk>> mesh_generation_queue;
+		ThreadSafeQueue<std::reference_wrapper<Chunk>> mesh_generation_queue;
 		Scop::Vec2i current_chunk = m_current_chunk_position.load();
 
 		Scop::Vec2i x_range{
@@ -191,7 +190,7 @@ void World::GenerateWorld()
 			current_chunk.y + RENDER_DISTANCE + 1
 		};
 
-		std::size_t range = (RENDER_DISTANCE + RENDER_DISTANCE + 2) * 2;
+		std::size_t range = ((x_range.y - x_range.x) * (z_range.y - z_range.x));
 
 		m_loading_progress = 0.0f;
 
@@ -201,39 +200,67 @@ void World::GenerateWorld()
 			{
 				QUIT_CHECK();
 
-				std::unordered_map<Scop::Vec2i, Chunk>::iterator chunk_data;
 				{
 					std::unique_lock guard(m_chunk_mutex);
-					chunk_data = m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z }).first;
+					m_chunks.try_emplace(Scop::Vec2i{ x, z }, *this, Scop::Vec2i{ x, z });
 				}
-				chunk_data->second.GenerateChunk();
-				if(!chunk_data->second.GetActor() && !chunk_data->second.GetWaterActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
-					mesh_generation_queue.push(std::ref(chunk_data->second));
 
-				m_loading_progress = std::min(m_loading_progress + (1.0f / LIMIT) * range, LIMIT);
+				if(pool.size() >= std::max(std::thread::hardware_concurrency(), 4u))
+				{
+					for(auto& thread : pool)
+						thread.join();
+					pool.clear();
+				}
+
+				Chunk& chunk = m_chunks.at(Scop::Vec2i{ x, z });
+				pool.emplace_back([this, &chunk, range, x, z, x_range, z_range, &mesh_generation_queue]
+				{
+					chunk.GenerateChunk();
+					if(!chunk.GetActor() && !chunk.GetWaterActor() && x > x_range.x && x < x_range.y && z > z_range.x && z < z_range.y)
+						mesh_generation_queue.Push(std::ref(chunk));
+					m_loading_progress = std::min(m_loading_progress + ((1.0f / range) * 50.0f), 50.0f);
+				});
 			}
 		}
 
+		for(auto& thread : pool)
+			thread.join();
+		pool.clear();
+
 		QUIT_CHECK();
 
-		while(!mesh_generation_queue.empty())
+		while(!mesh_generation_queue.IsEmpty())
 		{
-			auto& chunk = mesh_generation_queue.front().get();
-			mesh_generation_queue.pop();
+			QUIT_CHECK();
+			auto& chunk = mesh_generation_queue.Pop().get();
 
-			m_thread_pool.EnqueueTask([this, &chunk, range]
+			if(pool.size() >= std::max(std::thread::hardware_concurrency(), 4u))
+			{
+				for(auto& thread : pool)
+					thread.join();
+				pool.clear();
+			}
+
+			pool.emplace_back([this, &chunk, range]
 			{
 				chunk.GenerateMesh();
 				m_chunks_to_upload.Push(chunk);
-				m_loading_progress = std::min(m_loading_progress + (1.0f / (100.0f - LIMIT)) * range, 100.0f);
+				m_loading_progress = std::min(m_loading_progress + ((1.0f / range) * 50.0f), 99.0f);
 			});
 		}
 
-		m_thread_pool.WaitForAllTasks();
+		for(auto& thread : pool)
+			thread.join();
+		pool.clear();
+
+		m_loading_progress = 100.0f;
+
 		m_generation_status = GenerationState::Finished;
 	}
 
 quit:
+	for(auto& thread : pool)
+		thread.join();
 	m_generation_status = GenerationState::Finished;
 }
 

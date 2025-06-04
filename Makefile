@@ -19,6 +19,7 @@ CXXFLAGS = -std=c++20 -I ScopEngine/Runtime/Includes -I Application -I ScopEngin
 LDFLAGS = -lSDL2 ScopEngine/Bin/engine.a -latomic
 
 DEBUG ?= false
+VOX_DEBUG ?= false
 TSAN ?= false
 MODE = "release"
 
@@ -36,7 +37,11 @@ _GRAY := $(shell $(TPUT) setaf 8)
 _PURPLE := $(shell $(TPUT) setaf 5)
 
 ifeq ($(DEBUG), true)
-	CXXFLAGS += -g -D DEBUG
+	CXXFLAGS += -g -D VOX_DEBUG
+	MODE := $(_RESET)$(_PURPLE)$(_BOLD)Debug$(_RESET)$(_PURPLE)
+	COLOR := $(_PURPLE)
+else ifeq ($(VOX_DEBUG), true)
+	CXXFLAGS += -g -D VOX_DEBUG
 	MODE := $(_RESET)$(_PURPLE)$(_BOLD)Debug$(_RESET)$(_PURPLE)
 	COLOR := $(_PURPLE)
 else

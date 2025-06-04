@@ -10,7 +10,6 @@
 #include <Chunk.h>
 #include <Utils.h>
 #include <FpsCounter.h>
-#include <ThreadPool.h>
 #include <NoiseCollection.h>
 
 constexpr std::uint8_t RENDER_DISTANCE = 15;
@@ -53,7 +52,6 @@ class World
 	private:
 		NoiseCollection m_noisecollection;
 		FpsCounter m_fps_counter;
-		ThreadPool m_thread_pool;
 		std::unordered_map<Scop::Vec2i, Chunk> m_chunks;
 		ThreadSafeQueue<std::reference_wrapper<Chunk>> m_chunks_to_upload;
 		std::shared_ptr<Scop::Material> p_block_material;
